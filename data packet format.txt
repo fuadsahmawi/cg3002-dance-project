@@ -1,0 +1,10 @@
+1 packet of data which consists of 4 sensors of data
+
+{[gyro_x]*2 [gyro_y]*2 [gyro_z]*2 [acc_x]*4 [acc_y]*4 [acc_z]*4} * 4 
++
+[current]*4 [voltage]*4 [checksum]
+
+
+every packet:
+(int, int, int, float, float, float) x 4 + float + float
+

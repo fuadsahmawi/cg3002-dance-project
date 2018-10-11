@@ -1,0 +1,498 @@
+/***************************************************************************************************
+                            ExploreEmbedded Copyright Notice    
+****************************************************************************************************
+ * File:   01-TaskSwitching
+ * Version: 15.0
+ * Author: ExploreEmbedded
+ * Website: http://www.exploreembedded.com/wiki
+ * Description: File contains the free rtos example to demonstarte the task switching.
+
+This code has been developed and tested on ExploreEmbedded boards.  
+We strongly believe that the library works on any of development boards for respective controllers. 
+Check this link http://www.exploreembedded.com/wiki for awesome tutorials on 8051,PIC,AVR,ARM,Robotics,RTOS,IOT.
+ExploreEmbedded invests substantial time and effort developing open source HW and SW tools, to support consider 
+buying the ExploreEmbedded boards.
+ 
+The ExploreEmbedded libraries and examples are licensed under the terms of the new-bsd license(two-clause bsd license).
+See also: http://www.opensource.org/licenses/bsd-license.php
+
+EXPLOREEMBEDDED DISCLAIMS ANY KIND OF HARDWARE FAILURE RESULTING OUT OF USAGE OF LIBRARIES, DIRECTLY OR
+INDIRECTLY. FILES MAY BE SUBJECT TO CHANGE WITHOUT PRIOR NOTICE. THE REVISION HISTORY CONTAINS THE INFORMATION 
+RELATED TO UPDATES.
+ 
+
+Permission to use, copy, modify, and distribute this software and its documentation for any purpose
+and without fee is hereby granted, provided that this copyright notices appear in all copies 
+and that both those copyright notices and this permission notice appear in supporting documentation.
+**************************************************************************************************/
+
+
+#include <Wire.h>
+
+int gyro_x, gyro_y, gyro_z;
+unsigned long currentticks, lastticks, lastticks_1;
+
+//volatile int gyro_x_2, gyro_y_2, gyro_z_2;
+//volatile int gyro_x_3, gyro_y_3, gyro_z_3;
+//volatile int gyro_x_4, gyro_y_4, gyro_z_4;
+
+long gyro_x_cal_1, gyro_y_cal_1, gyro_z_cal_1;
+long gyro_x_cal_2, gyro_y_cal_2, gyro_z_cal_2;
+long gyro_x_cal_3, gyro_y_cal_3, gyro_z_cal_3;
+long gyro_x_cal_4, gyro_y_cal_4, gyro_z_cal_4;
+float acc_x_f,acc_y_f,acc_z_f;
+
+//volatile float acc_x_f_2,acc_y_f_2,acc_z_f_2;
+//volatile float acc_x_f_3,acc_y_f_3,acc_z_f_3;
+//volatile float acc_x_f_4,acc_y_f_4,acc_z_f_4;
+
+float acc_x, acc_y, acc_z;
+
+//volatile long acc_x_2, acc_y_2, acc_z_2;
+//volatile long acc_x_3, acc_y_3, acc_z_3;
+//volatile long acc_x_4, acc_y_4, acc_z_4;
+
+int temperature;
+int counter = 0;
+
+// Constants
+//const int SENSOR_PIN = A0;  // Input pin for measuring Vout
+//const int VOLTAGE_PIN = A2;
+//const float RS = 0.1;          // Shunt resistor value (in ohms)
+//const int VOLTAGE_REF = 5;  // Reference voltage for analog read
+
+// Global Variables
+float sensorValue;   // Variable to store value from analog read
+float current;       // Calculated current value
+float voltage;
+float energy=0;
+float power;
+
+unsigned long Prevtime;
+
+void setup()
+{
+  Wire.begin();  
+  Serial.begin(115200);
+  
+  pinMode(4, OUTPUT);                                             // sets the digital pin 4 as output
+  pinMode(5, OUTPUT);                                             // sets the digital pin 5 as output 
+  pinMode(6, OUTPUT);                                            // sets the digital pin 6 as output  
+  pinMode(7, OUTPUT);                                            // sets the digital pin 7 as output
+
+  digitalWrite(4, LOW);
+  digitalWrite(5, HIGH);
+  digitalWrite(6, HIGH);
+  digitalWrite(7, HIGH);
+  setup_mpu_6050_registers();                                 //Setup first MPU-6050 (500dfs / +/-8g) and start the gyro
+  for (int cal_int = 0; cal_int < 100 ; cal_int ++){
+    read_mpu_6050_data(); 
+    gyro_x_cal_1 += gyro_x;                                              //Add the gyro x-axis offset to the gyro_x_cal variable
+    gyro_y_cal_1 += gyro_y;                                              //Add the gyro y-axis offset to the gyro_y_cal variable
+    gyro_z_cal_1 += gyro_z;                                              //Add the gyro z-axis offset to the gyro_z_cal variable
+    delay(3);                                                          //Delay 3us to simulate the 250Hz program loop
+    Serial.println("Hello");
+  }
+  
+  digitalWrite(4, HIGH);
+  digitalWrite(5, LOW);
+  digitalWrite(6, HIGH);
+  digitalWrite(7, HIGH);
+  setup_mpu_6050_registers();                                               //Setup second MPU-6050 (500dfs / +/-8g) and start the gyro  
+  for (int cal_int = 0; cal_int < 100 ; cal_int ++){
+    read_mpu_6050_data(); 
+    gyro_x_cal_2 += gyro_x;                                              //Add the gyro x-axis offset to the gyro_x_cal variable
+    gyro_y_cal_2 += gyro_y;                                              //Add the gyro y-axis offset to the gyro_y_cal variable
+    gyro_z_cal_2 += gyro_z;                                              //Add the gyro z-axis offset to the gyro_z_cal variable
+    delay(3);                                                              //Delay 3us to simulate the 250Hz program loop
+  }
+
+  digitalWrite(4, HIGH);
+  digitalWrite(5, HIGH);
+  digitalWrite(6, LOW);
+  digitalWrite(7, HIGH);
+  setup_mpu_6050_registers();                                 //Setup third MPU-6050 (500dfs / +/-8g) and start the gyro
+    for (int cal_int = 0; cal_int < 100 ; cal_int ++){
+    read_mpu_6050_data(); 
+    gyro_x_cal_3 += gyro_x;                                              //Add the gyro x-axis offset to the gyro_x_cal variable
+    gyro_y_cal_3 += gyro_y;                                              //Add the gyro y-axis offset to the gyro_y_cal variable
+    gyro_z_cal_3 += gyro_z;                                              //Add the gyro z-axis offset to the gyro_z_cal variable
+    delay(3);                                                          //Delay 3us to simulate the 250Hz program loop
+  }
+
+  digitalWrite(4, HIGH);
+  digitalWrite(5, HIGH);
+  digitalWrite(6, HIGH);
+  digitalWrite(7, LOW);
+  setup_mpu_6050_registers();                                              //Setup fourth MPU-6050 (500dfs / +/-8g) and start the gyro
+    for (int cal_int = 0; cal_int < 100 ; cal_int ++){
+    read_mpu_6050_data(); 
+    gyro_x_cal_4 += gyro_x;                                              //Add the gyro x-axis offset to the gyro_x_cal variable
+    gyro_y_cal_4 += gyro_y;                                              //Add the gyro y-axis offset to the gyro_y_cal variable
+    gyro_z_cal_4 += gyro_z;                                              //Add the gyro z-axis offset to the gyro_z_cal variable
+    delay(3);                                                              //Delay 3us to simulate the 250Hz program loop
+  } 
+
+  gyro_x_cal_1 /= 100;                                                  //Divide the gyro_x_cal variable by 2000 to get the avarage offset
+  gyro_y_cal_1 /= 100;                                                  //Divide the gyro_y_cal variable by 2000 to get the avarage offset
+  gyro_z_cal_1 /= 100;                                                  //Divide the gyro_z_cal variable by 2000 to get the avarage offset
+
+  gyro_x_cal_2 /= 100;                                                  //Divide the gyro_x_cal variable by 2000 to get the avarage offset
+  gyro_y_cal_2 /= 100;                                                  //Divide the gyro_y_cal variable by 2000 to get the avarage offset
+  gyro_z_cal_2 /= 100;   
+
+  gyro_x_cal_3 /= 100;                                                  //Divide the gyro_x_cal variable by 2000 to get the avarage offset
+  gyro_y_cal_3 /= 100;                                                  //Divide the gyro_y_cal variable by 2000 to get the avarage offset
+  gyro_z_cal_3 /= 100;
+
+  gyro_x_cal_4 /= 100;                                                  //Divide the gyro_x_cal variable by 2000 to get the avarage offset
+  gyro_y_cal_4 /= 100;                                                  //Divide the gyro_y_cal variable by 2000 to get the avarage offset
+  gyro_z_cal_4 /= 100;
+  
+  Serial.println(F("Calibration Done"));
+}
+void loop()
+{
+  currentticks = millis();
+  
+  if(currentticks-lastticks>=200){
+     MPU6050();
+     lastticks = millis();
+  }
+
+  //if(currentticks -lastticks_1>=500){
+     //Power();
+     //lastticks_1 = millis();
+  //}
+}
+
+//execute every 0.5s
+void Power()
+{   
+    
+    float average = 0.0;
+    float average_1 = 0.0;
+
+    
+
+      Prevtime = micros();
+  
+  for (int i = 0; i<10; i++){
+    
+   sensorValue = analogRead(A0);
+   voltage = analogRead(A1);
+
+   sensorValue = (sensorValue * 5) / 1023;
+   voltage = (voltage * 5) / 1023;
+   
+   average += sensorValue;
+   average_1 += voltage;
+   //delay(5);
+  }
+     
+   current = (average/10.0) / (10 * 0.1);
+   average_1 = average_1 / 10;
+   average_1 = average_1 * 2;
+   power = average_1 * current;
+   energy += power * ((micros()-Prevtime)/ 1000000.0); 
+  
+  Serial.print(F("current = "));
+  Serial.print(current * 1000);
+  Serial.print(F("mA"));
+  Serial.print(F(" "));
+  Serial.print(F("voltage = "));
+  Serial.print(average_1, 2);
+  Serial.print(F("V"));
+  Serial.print(F(" "));
+  Serial.print(F("power = "));
+  Serial.print(power * 1000);
+  Serial.print(F("mW"));
+  Serial.print(F(" "));
+  Serial.print(F("energy = "));
+  Serial.print(energy,5);
+  Serial.print(F("J"));
+  Serial.println();
+}
+
+
+//execute every 0.2s
+void MPU6050()
+{   
+       
+  if (counter == 0) {
+    
+  digitalWrite(4, LOW);
+  digitalWrite(5, HIGH);
+  digitalWrite(6, HIGH);
+  digitalWrite(7, HIGH);
+  
+  read_mpu_6050_data();
+  
+  gyro_x -= gyro_x_cal_1;                                                
+  gyro_y -= gyro_y_cal_1;                                                
+  gyro_z -= gyro_z_cal_1;
+                                                                        
+  gyro_x = gyro_x / 65.5;
+  gyro_y = gyro_y / 65.5;
+  gyro_z = gyro_z / 65.5;
+  
+  acc_x_f = acc_x / 2048.0;
+  acc_y_f = acc_y / 2048.0;
+  acc_z_f = acc_z / 2048.0;
+
+  acc_x_f = acc_x_f * 9.8;
+  acc_y_f = acc_y_f * 9.8;
+  acc_z_f = acc_z_f * 9.8;
+
+  Serial.print(F("x1_a= "));
+  Serial.print(acc_x_f);
+  Serial.print(F(","));
+  Serial.print(F("y1_a= "));
+  Serial.print(acc_y_f);
+  Serial.print(F(","));
+  Serial.print(F("z1_a= "));
+  Serial.print(acc_z_f);
+  Serial.print(F(","));
+  Serial.print(F("x1_g= "));
+  Serial.print(gyro_x);
+  Serial.print(F(","));
+  Serial.print(F("y1_g= "));
+  Serial.print(gyro_y);
+  Serial.print(F(","));
+  Serial.print(F("z1_g= "));
+  Serial.print(gyro_z);
+  Serial.println();
+  
+  counter++;
+  }
+
+  if (counter == 1) {
+    
+  digitalWrite(4, HIGH);
+  digitalWrite(5, LOW);
+  digitalWrite(6, HIGH);
+  digitalWrite(7, HIGH);
+  
+  read_mpu_6050_data();
+  
+  gyro_x -= gyro_x_cal_2;                                                //Subtract the offset calibration value from the raw gyro_x value
+  gyro_y -= gyro_y_cal_2;                                                //Subtract the offset calibration value from the raw gyro_y value
+  gyro_z -= gyro_z_cal_2;
+                                                                        //Subtract the offset calibration value from the raw gyro_z value
+  gyro_x = gyro_x / 65.5;
+  gyro_y = gyro_y / 65.5;
+  gyro_z = gyro_z / 65.5;
+  
+  acc_x_f = acc_x / 2048.0;
+  acc_y_f = acc_y / 2048.0;
+  acc_z_f = acc_z / 2048.0;
+
+  acc_x_f = acc_x_f * 9.8;
+  acc_y_f = acc_y_f * 9.8;
+  acc_z_f = acc_z_f * 9.8;
+
+  Serial.print(F("x2_a= "));
+  Serial.print(acc_x_f);
+  Serial.print(F(","));
+  Serial.print(F("y2_a= "));
+  Serial.print(acc_y_f);
+  Serial.print(F(","));
+  Serial.print(F("z2_a= "));
+  Serial.print(acc_z_f);
+  Serial.print(F(","));
+  Serial.print(F("x2_g= "));
+  Serial.print(gyro_x);
+  Serial.print(F(","));
+  Serial.print(F("y2_g= "));
+  Serial.print(gyro_y);
+  Serial.print(F(","));
+  Serial.print(F("z2_g= "));
+  Serial.print(gyro_z);
+  Serial.println();
+  
+  counter++;
+  }
+
+  if (counter == 2) {
+    
+  digitalWrite(4, HIGH);
+  digitalWrite(5, HIGH);
+  digitalWrite(6, LOW);
+  digitalWrite(7, HIGH);
+  
+  read_mpu_6050_data();
+  
+  gyro_x -= gyro_x_cal_3;                                                //Subtract the offset calibration value from the raw gyro_x value
+  gyro_y -= gyro_y_cal_3;                                                //Subtract the offset calibration value from the raw gyro_y value
+  gyro_z -= gyro_z_cal_3;
+                                                                        //Subtract the offset calibration value from the raw gyro_z value
+  gyro_x = gyro_x / 65.5;
+  gyro_y = gyro_y / 65.5;
+  gyro_z = gyro_z / 65.5;
+  
+  acc_x_f = acc_x / 2048.0;
+  acc_y_f = acc_y / 2048.0;
+  acc_z_f = acc_z / 2048.0;
+
+  acc_x_f = acc_x_f * 9.8;
+  acc_y_f = acc_y_f * 9.8;
+  acc_z_f = acc_z_f * 9.8;
+
+  Serial.print(F("x3_a= "));
+  Serial.print(acc_x_f);
+  Serial.print(F(","));
+  Serial.print(F("y3_a= "));
+  Serial.print(acc_y_f);
+  Serial.print(F(","));
+  Serial.print(F("z3_a= "));
+  Serial.print(acc_z_f);
+  Serial.print(F(","));
+  Serial.print(F("x3_g= "));
+  Serial.print(gyro_x);
+  Serial.print(F(","));
+  Serial.print(F("y3_g= "));
+  Serial.print(gyro_y);
+  Serial.print(F(","));
+  Serial.print(F("z3_g= "));
+  Serial.print(gyro_z);
+  Serial.println();
+  
+  counter++;
+  }
+
+  if (counter == 3) {
+    
+  digitalWrite(4, HIGH);
+  digitalWrite(5, HIGH);
+  digitalWrite(6, HIGH);
+  digitalWrite(7, LOW);
+  
+  read_mpu_6050_data();
+  
+  gyro_x -= gyro_x_cal_4;                                                //Subtract the offset calibration value from the raw gyro_x value
+  gyro_y -= gyro_y_cal_4;                                                //Subtract the offset calibration value from the raw gyro_y value
+  gyro_z -= gyro_z_cal_4;
+                                                                        //Subtract the offset calibration value from the raw gyro_z value
+  gyro_x = gyro_x / 65.5;
+  gyro_y = gyro_y / 65.5;
+  gyro_z = gyro_z / 65.5;
+  
+  acc_x_f = acc_x / 2048.0;
+  acc_y_f = acc_y / 2048.0;
+  acc_z_f = acc_z / 2048.0;
+
+  acc_x_f = acc_x_f * 9.8;
+  acc_y_f = acc_y_f * 9.8;
+  acc_z_f = acc_z_f * 9.8;
+
+  Serial.print(F("x4_a= "));
+  Serial.print(acc_x_f);
+  Serial.print(F(","));
+  Serial.print(F("y4_a= "));
+  Serial.print(acc_y_f);
+  Serial.print(F(","));
+  Serial.print(F("z4_a= "));
+  Serial.print(acc_z_f);
+  Serial.print(F(","));
+  Serial.print(F("x4_g= "));
+  Serial.print(gyro_x);
+  Serial.print(F(","));
+  Serial.print(F("y4_g= "));
+  Serial.print(gyro_y);
+  Serial.print(F(","));
+  Serial.print(F("z4_g= "));
+  Serial.print(gyro_z);
+  Serial.println();
+  
+  counter = 0;
+   }
+  
+}
+void read_mpu_6050_data(){
+  //Serial.print("1");//Subroutine for reading the raw gyro and accelerometer data
+  
+ 
+  Wire.beginTransmission(0x68);                                        //Start communicating with the MPU-6050
+  Wire.write(0x3B);
+  Wire.endTransmission();
+  Wire.requestFrom(0x68,14);//Request 14 bytes from the MPU-6050
+  while(Wire.available()<14);
+  acc_x = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_x variable
+  acc_y = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_y variable
+  acc_z = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_z variable
+  temperature = Wire.read()<<8|Wire.read();                              //Add the low and high byte to the temperature variable
+  gyro_x = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_x variable
+  gyro_y = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_y variable
+  gyro_z = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_z variable
+       
+
+  
+  //if (counter == 1) {
+  //Wire.beginTransmission(0x68);                                        //Start communicating with the MPU-6050
+  //Wire.write(0x3B);
+  //Wire.endTransmission();
+  //Wire.requestFrom(0x68,14);//Request 14 bytes from the MPU-6050
+  //while(Wire.available()<14);
+  //acc_x_2 = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_x variable
+  //acc_y_2 = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_y variable
+  //acc_z_2 = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_z variable
+  //temperature = Wire.read()<<8|Wire.read();                              //Add the low and high byte to the temperature variable
+  //gyro_x_2 = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_x variable
+  //gyro_y_2 = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_y variable
+  //gyro_z_2 = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_z variable
+  //}       
+
+  //if (counter == 2) {
+  //Wire.beginTransmission(0x68);                                        //Start communicating with the MPU-6050
+  //Wire.write(0x3B);
+  //Wire.endTransmission();
+  //Wire.requestFrom(0x68,14);//Request 14 bytes from the MPU-6050
+  //while(Wire.available()<14);
+  //acc_x_3 = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_x variable
+  //acc_y_3 = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_y variable
+  //acc_z_3 = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_z variable
+  //temperature = Wire.read()<<8|Wire.read();                              //Add the low and high byte to the temperature variable
+  //gyro_x_3 = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_x variable
+  //gyro_y_3 = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_y variable
+  //gyro_z_3 = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_z variable
+  //}
+
+  //if (counter == 3) {
+  //Wire.beginTransmission(0x68);                                        //Start communicating with the MPU-6050
+  //Wire.write(0x3B);
+  //Wire.endTransmission();
+  //Wire.requestFrom(0x68,14);//Request 14 bytes from the MPU-6050
+  //while(Wire.available()<14);
+  //acc_x_4 = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_x variable
+  //acc_y_4 = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_y variable
+  //acc_z_4 = Wire.read()<<8|Wire.read();                                  //Add the low and high byte to the acc_z variable
+  //temperature = Wire.read()<<8|Wire.read();                              //Add the low and high byte to the temperature variable
+  //gyro_x_4 = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_x variable
+  //gyro_y_4 = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_y variable
+  //gyro_z_4 = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_z variable
+ //}       
+                                             
+}
+void setup_mpu_6050_registers(){
+  Wire.beginTransmission(0x68);                                        //Start communicating with the MPU-6050  (Slave Address)
+  Wire.write(0x6B);                                                    //Send the requested starting register   (PWR_MGMT_1)  
+  Wire.write(0x01);                                                    //Set the requested starting register    (Write all zeros + clock select x axis as gyro reference) 
+  Wire.endTransmission();                                              //End the transmission
+  //Configure the accelerometer (+/-8g)
+  Wire.beginTransmission(0x68);                                        //Start communicating with the MPU-6050    
+  Wire.write(0x1C);                                                    //Send the requested starting register   (ACCEL_CONFIG)
+  Wire.write(0x18);                                                    //Set the requested starting register    (VALUE)
+  Wire.endTransmission();                                              //End the transmission
+  //Configure the gyro (500dps full scale)
+  Wire.beginTransmission(0x68);                                        //Start communicating with the MPU-6050
+  Wire.write(0x1B);                                                    //Send the requested starting register   (GYRO_CONFIG)
+  Wire.write(0x08);                                                    //Set the requested starting register    (VALUE)
+  Wire.endTransmission();
+ 
+  Wire.beginTransmission(0x68);                                        //Start communicating with the MPU-6050
+  Wire.write(0x1A);                                                    //Send the requested starting register   (GYRO_CONFIG)
+  Wire.write(0x06);                                                    //Set the requested starting register    (VALUE)
+  Wire.endTransmission();
+}
+
+
