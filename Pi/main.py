@@ -2,6 +2,7 @@ import serial
 import time
 import struct
 import csv
+import sys
 
 # constants
 HANDSHAKE_INIT = (5).to_bytes(1, byteorder='big')
@@ -86,7 +87,19 @@ def deserialize_packet(packet):
     
     checksum = int.from_bytes(packet[80:81], byteorder='big')
     
-    print(data)
+    # print("1:")
+    # print(data[0:3])
+    # print(data[3:6])
+    print("2:")
+    print(data[6:9])
+    print(data[9:12])
+    print("3:")
+    print(data[12:15])
+    print(data[15:18])
+    # print("4:")
+    # print(data[18:21])
+    # print(data[21:24])
+    print()
 
 
     return data
@@ -97,7 +110,7 @@ def deserialize_packet(packet):
 def barray_to_intarray(b_array, n_bytes_per_int):
     int_array = []
     for i in range(0, len(b_array), n_bytes_per_int):
-        int_data = int.from_bytes(b_array[i:i+n_bytes_per_int], byteorder='little')
+        int_data = int.from_bytes(b_array[i:i+n_bytes_per_int], byteorder='big', signed = True)
         int_array.append(int_data)        
     return int_array
 
@@ -116,7 +129,7 @@ print("connected to COM4\n")
 #         is_connected_to_mega = True
 
 
-with open('data.csv', mode='w', newline='') as file:
+with open(sys.argv[1], mode='w', newline='') as file:
 	while True:
 		# poll port for data packet
 		packet = read_packet(ser)
@@ -124,6 +137,7 @@ with open('data.csv', mode='w', newline='') as file:
 		# in effect, if read_packet() does not return -1 or -2
 		if not isinstance(packet, int):
 			values = deserialize_packet(packet)
+			values = values[6:18] # record sensor 2 and 3 data
 			
 			file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 			file_writer.writerow(values)

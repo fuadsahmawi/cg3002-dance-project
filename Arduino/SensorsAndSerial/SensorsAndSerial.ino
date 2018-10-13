@@ -151,22 +151,22 @@ void readSensors(byte* data) {
   gyro_y = gyro_y / 65.5;
   gyro_z = gyro_z / 65.5;
 
-  byte_high = gyro_x >> 8;
-  byte_low = gyro_x;
+  byte_high = highByte(gyro_x);
+  byte_low = lowByte(gyro_x);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
   index++;
   
-  byte_high = gyro_y >> 8;
-  byte_low = gyro_y;
+  byte_high = highByte(gyro_y);
+  byte_low = lowByte(gyro_y);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
   index++;
   
-  byte_high = gyro_z >> 8;
-  byte_low = gyro_z;
+  byte_high = highByte(gyro_z);
+  byte_low = lowByte(gyro_z);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
@@ -244,22 +244,22 @@ void readSensors(byte* data) {
   gyro_y = gyro_y / 65.5;
   gyro_z = gyro_z / 65.5;
 
-  byte_high = gyro_x >> 8;
-  byte_low = gyro_x;
+  byte_high = highByte(gyro_x);
+  byte_low = lowByte(gyro_x);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
   index++;
   
-  byte_high = gyro_y >> 8;
-  byte_low = gyro_y;
+  byte_high = highByte(gyro_y);
+  byte_low = lowByte(gyro_y);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
   index++;
   
-  byte_high = gyro_z >> 8;
-  byte_low = gyro_z;
+  byte_high = highByte(gyro_z);
+  byte_low = lowByte(gyro_z);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
@@ -337,22 +337,22 @@ void readSensors(byte* data) {
   gyro_y = gyro_y / 65.5;
   gyro_z = gyro_z / 65.5;
 
-  byte_high = gyro_x >> 8;
-  byte_low = gyro_x;
+  byte_high = highByte(gyro_x);
+  byte_low = lowByte(gyro_x);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
   index++;
   
-  byte_high = gyro_y >> 8;
-  byte_low = gyro_y;
+  byte_high = highByte(gyro_y);
+  byte_low = lowByte(gyro_y);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
   index++;
   
-  byte_high = gyro_z >> 8;
-  byte_low = gyro_z;
+  byte_high = highByte(gyro_z);
+  byte_low = lowByte(gyro_z);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
@@ -430,22 +430,22 @@ void readSensors(byte* data) {
   gyro_y = gyro_y / 65.5;
   gyro_z = gyro_z / 65.5;
 
-  byte_high = gyro_x >> 8;
-  byte_low = gyro_x;
+  byte_high = highByte(gyro_x);
+  byte_low = lowByte(gyro_x);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
   index++;
   
-  byte_high = gyro_y >> 8;
-  byte_low = gyro_y;
+  byte_high = highByte(gyro_y);
+  byte_low = lowByte(gyro_y);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
   index++;
   
-  byte_high = gyro_z >> 8;
-  byte_low = gyro_z;
+  byte_high = highByte(gyro_z);
+  byte_low = lowByte(gyro_z);
   data[index] = byte_high;
   index++;
   data[index] = byte_low;
