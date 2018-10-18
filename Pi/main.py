@@ -1,3 +1,4 @@
+import collections
 import serial
 import time
 import struct
@@ -22,18 +23,18 @@ k = 0
 def read_packet(serial):
     
     if serial.in_waiting >= PACKET_SIZE :
-	    packet = serial.read(PACKET_SIZE)
-	    serial.reset_input_buffer()
-	    
-	    if checksum(packet) == packet[len(packet) - 1]:
-	        serial.write(ACK)
-	        # serial.reset_input_buffer()
-	        return packet # an array of bytes
-	    else:
-	        serial.write(NAK)
-	        return -1 # checksum issue
+        packet = serial.read(PACKET_SIZE)
+        serial.reset_input_buffer()
+        
+        if checksum(packet) == packet[len(packet) - 1]:
+            serial.write(ACK)
+            # serial.reset_input_buffer()
+            return packet # an array of bytes
+        else:
+            serial.write(NAK)
+            return -1 # checksum issue
     else:
-    	return -2
+        return -2
     
 def checksum(b_array):
     # check values
@@ -130,15 +131,57 @@ print("connected to COM4\n")
 
 
 with open(sys.argv[1], mode='w', newline='') as file:
-	while True:
-		# poll port for data packet
-		packet = read_packet(ser)
-		
-		# in effect, if read_packet() does not return -1 or -2
-		if not isinstance(packet, int):
-			values = deserialize_packet(packet)
-			values = values[6:18] # record sensor 2 and 3 data
-			
-			file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-			file_writer.writerow(values)
+    while True:
+        # poll port for data packet
+        packet = read_packet(ser)
+        
+        # in effect, if read_packet() does not return -1 or -2
+        if not isinstance(packet, int):
+            values = deserialize_packet(packet)
+            values = values[6:18] # record sensor 2 and 3 data
+            
+            file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            file_writer.writerow(values)
 
+## global models here
+swm_model
+rf_model
+knn_model
+           
+def init_models():
+    return
+            
+def main_predict():
+    window_size = 100
+    window_slide_by = 10
+    window_data = collections.deque(maxlen=window_size)
+
+    init_models()
+    
+    while True:
+        # poll port for data packet
+        packet = read_packet(ser)
+        
+        window_data.append(packet)
+        count += 1
+        
+        if (window_data.size() == window_size and count == window_slide_by):
+            extracted_features = extract_feature(window_data)
+        
+            vote1 = swm_pred(extracted_features)
+            vote2 = rf_pred(extracted_features)
+            vote3 = knn_pred(window_data)
+            
+            count = 0
+            
+            ## TODO: standardize activity integer encoding
+            ## TODO: send comms activity string
+        
+        
+        
+        
+        
+        
+        
+        
+            
