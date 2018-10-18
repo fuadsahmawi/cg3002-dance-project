@@ -5,9 +5,9 @@ import csv
 import sys
 
 # constants
-HANDSHAKE_INIT = (5).to_bytes(1, byteorder='big')
-ACK = (6).to_bytes(1, byteorder='big')
-NAK = (25).to_bytes(1, byteorder='big')
+HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
+ACK = struct.pack("B", 6) # (6).to_bytes(1, byteorder='big') # 
+NAK = struct.pack("B", 25) # (25).to_bytes(1, byteorder='big')
 PACKET_SIZE = 81
 
 # global variables
