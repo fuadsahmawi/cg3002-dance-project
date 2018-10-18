@@ -115,34 +115,6 @@ def barray_to_intarray(b_array, n_bytes_per_int):
         int_array.append(int_data)        
     return int_array
 
-    
-
-# setup serial line
-ser = serial.Serial('COM4', 57600, timeout=1)
-print("connected to COM4\n")
-
-# handshake
-# while not is_connected_to_mega:
-#     ser.write(HANDSHAKE_INIT)
-#     data = ser.read(1)
-#     if data == ACK:
-#         ser.write(ACK)
-#         is_connected_to_mega = True
-
-
-with open(sys.argv[1], mode='w', newline='') as file:
-    while True:
-        # poll port for data packet
-        packet = read_packet(ser)
-        
-        # in effect, if read_packet() does not return -1 or -2
-        if not isinstance(packet, int):
-            values = deserialize_packet(packet)
-            values = values[6:18] # record sensor 2 and 3 data
-            
-            file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            file_writer.writerow(values)
-
 ## global models here
 swm_model
 rf_model
@@ -154,6 +126,7 @@ def init_models():
 def main_predict():
     window_size = 100
     window_slide_by = 10
+    ## https://stackoverflow.com/questions/4151320/efficient-circular-buffer
     window_data = collections.deque(maxlen=window_size)
 
     init_models()
@@ -176,12 +149,31 @@ def main_predict():
             
             ## TODO: standardize activity integer encoding
             ## TODO: send comms activity string
-        
-        
-        
-        
-        
-        
-        
-        
+
+def collect_data():
+    # setup serial line
+    ser = serial.Serial('COM4', 57600, timeout=1)
+    print("connected to COM4\n")
+
+    # handshake
+    # while not is_connected_to_mega:
+    #     ser.write(HANDSHAKE_INIT)
+    #     data = ser.read(1)
+    #     if data == ACK:
+    #         ser.write(ACK)
+    #         is_connected_to_mega = True
+
+
+    with open(sys.argv[1], mode='w', newline='') as file:
+        while True:
+            # poll port for data packet
+            packet = read_packet(ser)
             
+            # in effect, if read_packet() does not return -1 or -2
+            if not isinstance(packet, int):
+                values = deserialize_packet(packet)
+                values = values[6:18] # record sensor 2 and 3 data
+                
+                file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                file_writer.writerow(values)
+        
