@@ -127,17 +127,72 @@ decode_label_dict = {0:'chicken', 1:'number7', 2:'sidestep', 3:'wipers', 4:'turn
            
 def init_models():
     knn_model = pickle.load(open("knn_model", 'rb'))
+	svm_model = joblib.load("SVM.cls")
+	rf_model = joblib.load("RanFor.cls")
             
 def svm_pred(window_data):
-	svm_model = joblib.load("SVM.cls")
     return svm_model.predict(window_data)
     
 def rf_pred(window_data):
-	rf_model = joblib.load("RanFor.cls")
     return rf_model.predict(window_data)
 
 def knn_pred(window_data):
     return knn_model.predict(window_data)
+	
+def extract_feature(window_data):
+	feature = []
+    meanAccX1 = window_data["accx1"].mean()
+    meanAccY1 = window_data["accy1"].mean()
+    meanAccZ1 = window_data["accz1"].mean()
+    meanAccX2 = window_data["accx2"].mean()
+    meanAccY2 = window_data["accy2"].mean()
+    meanAccZ2 = window_data["accz2"].mean()
+    meanGyrX1 = window_data["gyrx1"].mean()
+    meanGyrY1 = window_data["gyry1"].mean()
+    meanGyrZ1 = window_data["gyrz1"].mean()
+    meanGyrX2 = window_data["gyrx2"].mean()
+    meanGyrY2 = window_data["gyry2"].mean()
+    meanGyrZ2 = window_data["gyrz2"].mean()
+	feature.append(meanAccX1)
+    feature.append(meanAccY1)
+    feature.append(meanAccZ1)
+    feature.append(meanGyrX1)
+    feature.append(meanGyrY1)
+    feature.append(meanGyrZ1)
+    feature.append(meanAccX2)
+    feature.append(meanAccY2)
+    feature.append(meanAccZ2)
+    feature.append(meanGyrX2)
+    feature.append(meanGyrY2)
+    feature.append(meanGyrZ2)
+	
+	peakAccX1 = window_data["accx1"].max()
+    peakAccY1 = window_data["accy1"].max()
+    peakAccZ1 = window_data["accz1"].max()
+    peakAccX2 = window_data["accx2"].max()
+    peakAccY2 = window_data["accy2"].max()
+    peakAccZ2 = window_data["accz2"].max()
+    peakGyrX1 = window_data["gyrx1"].max()
+    peakGyrY1 = window_data["gyry1"].max()
+    peakGyrZ1 = window_data["gyrz1"].max()
+    peakGyrX2 = window_data["accx2"].max()
+    peakGyrY2 = window_data["accy2"].max()
+    peakGyrZ2 = window_data["accz2"].max()
+	feature.append(peakAccX1)
+    feature.append(peakAccY1)
+    feature.append(peakAccZ1)
+    feature.append(peakAccX2)
+    feature.append(peakAccY2)
+    feature.append(peakAccZ2)
+    feature.append(peakGyrX1)
+    feature.append(peakGyrY1)
+    feature.append(peakGyrZ1)
+    feature.append(peakGyrX2)
+    feature.append(peakGyrY2)
+    feature.append(peakGyrZ2)
+	
+	return feature
+    
 
 def main_predict():
     ## TODO: encode window_size and window_slide_by in model itself?
