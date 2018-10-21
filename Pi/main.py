@@ -8,7 +8,7 @@ import sys
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
 ACK = struct.pack("B", 6) # (6).to_bytes(1, byteorder='big') # 
 NAK = struct.pack("B", 25) # (25).to_bytes(1, byteorder='big')
-PACKET_SIZE = 81
+PACKET_SIZE = 45
 
 # global variables
 is_connected_to_mega = False
@@ -59,7 +59,7 @@ def deserialize_packet(packet):
     
     data = []
     
-    for i in range(4): # loop 4 times for 4 sensors.
+    for i in range(2): # loop 2 times for 2 sensors.
         gyro_data_array = barray_to_intarray(packet[index:index + 6], 2) # extract 3 ints from 6 bytes
         index += 6
         data.extend(gyro_data_array)
@@ -85,20 +85,22 @@ def deserialize_packet(packet):
     data.append(voltage)
     index += 4
     
-    checksum = int.from_bytes(packet[80:81], byteorder='big')
+    checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
     
     # print("1:")
     # print(data[0:3])
     # print(data[3:6])
     print("2:")
+    print(data[0:3])
+    print(data[3:6])
+    print("3:")
     print(data[6:9])
     print(data[9:12])
-    print("3:")
-    print(data[12:15])
-    print(data[15:18])
     # print("4:")
     # print(data[18:21])
     # print(data[21:24])
+    print(current)
+    print(voltage)
     print()
 
 
@@ -137,7 +139,7 @@ with open(sys.argv[1], mode='w', newline='') as file:
 		# in effect, if read_packet() does not return -1 or -2
 		if not isinstance(packet, int):
 			values = deserialize_packet(packet)
-			values = values[6:18] # record sensor 2 and 3 data
+			values = values[0:12] # record sensor 2 and 3 data
 			
 			file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 			file_writer.writerow(values)
