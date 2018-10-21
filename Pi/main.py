@@ -207,7 +207,7 @@ def main_predict():
     while True:
         # poll port for data packet
         ## assumed packet is list
-        packet = read_packet(ser)
+        packet = deserialize_packet(read_packet(ser))
         
         window_data.append(packet)
         count += 1
