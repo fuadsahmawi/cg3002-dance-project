@@ -206,6 +206,7 @@ def main_predict():
     
     while True:
         # poll port for data packet
+        ## assumed packet is list
         packet = read_packet(ser)
         
         window_data.append(packet)
@@ -216,7 +217,7 @@ def main_predict():
         
             vote1 = svm_pred(extracted_features)
             vote2 = rf_pred(extracted_features)
-            vote3 = knn_pred(window_data)
+            vote3 = knn_pred(extracted_features)
             
             count = 0
             
