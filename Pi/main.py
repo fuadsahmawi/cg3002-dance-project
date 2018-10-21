@@ -123,7 +123,7 @@ swm_model = None
 rf_model = None
 knn_model = None
 
-decode_label_dict = {0:'chicken', 1:'number7', 2:'sidestep', 3:'wipers', 4:'turnclap'}
+decode_label_dict = {0:'wipers', 1:'number7', 2:'chicken', 3:'sidestep', 4:'turnclap'}
            
 def init_models():
     knn_model = pickle.load(open("knn_model", 'rb'))
