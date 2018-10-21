@@ -1,9 +1,12 @@
-import collections
-import serial
-import time
 import struct
-import csv
 import sys
+import time
+
+import collections
+from collections import Counter
+import csv
+import pickle
+import serial
 
 # constants
 HANDSHAKE_INIT = (5).to_bytes(1, byteorder='big')
@@ -115,17 +118,30 @@ def barray_to_intarray(b_array, n_bytes_per_int):
         int_array.append(int_data)        
     return int_array
 
-## global models here
-swm_model
-rf_model
-knn_model
+## global vars for main_predict()
+swm_model = None
+rf_model = None
+knn_model = None
+
+decode_label_dict = {0:'chicken', 1:'number7', 2:'sidestep', 3:'wipers', 4:'turnclap'}
            
 def init_models():
-    return
+    knn_model = pickle.load(open("knn_model", 'rb'))
             
+def svm_pred(window_data):
+    return -1
+    
+def rf_pred(window_data):
+    return -1
+
+def knn_pred(window_data):
+    return knn_model.predict(window_data)
+
 def main_predict():
-    window_size = 100
-    window_slide_by = 10
+    ## TODO: encode window_size and window_slide_by in model itself?
+    window_size = 40
+    window_slide_by = 4
+    
     ## https://stackoverflow.com/questions/4151320/efficient-circular-buffer
     window_data = collections.deque(maxlen=window_size)
 
@@ -141,14 +157,16 @@ def main_predict():
         if (window_data.size() == window_size and count == window_slide_by):
             extracted_features = extract_feature(window_data)
         
-            vote1 = swm_pred(extracted_features)
+            vote1 = svm_pred(extracted_features)
             vote2 = rf_pred(extracted_features)
             vote3 = knn_pred(window_data)
             
             count = 0
             
-            ## TODO: standardize activity integer encoding
-            ## TODO: send comms activity string
+            votes = Counter(vote1, vote2, vote3)
+            final_vote = votes.most_common()
+            
+            # send_comms(decode_label_dict[final_vote])
 
 def collect_data():
     # setup serial line
