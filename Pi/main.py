@@ -49,6 +49,7 @@ def checksum(b_array):
             csum = csum ^ b_array[i]        
     return csum
 
+# pre-condition: packet must be PACKET_SIZE, and of pre-defined format
 def deserialize_packet(packet):
     # returns a list of int, int, int, float, float, float etc then 2 floats
     # for current and voltage
@@ -209,56 +210,34 @@ def main_predict():
     while True:
         # poll port for data packet
         ## assumed packet is list
-        packet = deserialize_packet(read_packet(ser))
-        
-        window_data.append(packet)
-        count += 1
-        
-        if (window_data.size() == window_size and count >= window_slide_by):
-            extracted_features = extract_feature(window_data)
-        
-            vote1 = svm_pred(extracted_features)
-            vote2 = rf_pred(extracted_features)
-            vote3 = knn_pred(extracted_features)
-            
-            count = 0
-            
-            votes = Counter(vote1, vote2, vote3)
-            final_vote = votes.most_common()
-            
-            if len(final_vote) >= 3: ## no decision
-                continue
-            else
-                # send_comms(decode_label_dict[final_vote[0]])
-                window_data.clear()
+        raw_packet = read_packet()
+        if not isinstance(raw_packet, int):
+        	packet = deserialize_packet()
+        	window_data.append(packet)
+	        count += 1
+	        
+	        if (window_data.size() == window_size and count >= window_slide_by):
+	            extracted_features = extract_feature(window_data)
+	        
+	            vote1 = svm_pred(extracted_features)
+	            vote2 = rf_pred(extracted_features)
+	            vote3 = knn_pred(extracted_features)
+	            
+	            count = 0
+	            
+	            votes = Counter(vote1, vote2, vote3)
+	            final_vote = votes.most_common()
+	            
+	            if len(final_vote) >= 3: ## no decision
+	                continue
+	            else
+	                print(decode_label_dict[final_vote[0]])
+	                window_data.clear()
+	                # TODO: integrate with wifi TCP/evaluation server
 
+        
 def collect_data():
-    # setup serial line
-    ser = serial.Serial('COM4', 57600, timeout=1)
-    print("connected to COM4\n")
-
-    # handshake
-    # while not is_connected_to_mega:
-    #     ser.write(HANDSHAKE_INIT)
-    #     data = ser.read(1)
-    #     if data == ACK:
-    #         ser.write(ACK)
-    #         is_connected_to_mega = True
-
-# setup serial line
-ser = serial.Serial('COM4', 57600, timeout=1)
-print("connected to COM4\n")
-
-# handshake
-while not is_connected_to_mega:
-    ser.write(HANDSHAKE_INIT)
-    data = ser.read(1)
-    if data == ACK:
-        ser.write(ACK)
-        is_connected_to_mega = True
-
-
-with open(sys.argv[1], mode='w', newline='') as file:
+    with open(sys.argv[1], mode='w', newline='') as file:
 	while True:
 		# poll port for data packet
 		packet = read_packet(ser)
@@ -270,3 +249,20 @@ with open(sys.argv[1], mode='w', newline='') as file:
 			
 			file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 			file_writer.writerow(values)
+
+
+# ======== MAIN =========
+
+# setup serial line
+ser = serial.Serial('/dev/serial0', 57600, timeout=1)
+print("connected to serial\n")
+
+# handshake
+while not is_connected_to_mega:
+    ser.write(HANDSHAKE_INIT)
+    data = ser.read(1)
+    if data == ACK:
+        ser.write(ACK)
+        is_connected_to_mega = True
+
+main_predict()
