@@ -223,7 +223,11 @@ def main_predict():
             votes = Counter(vote1, vote2, vote3)
             final_vote = votes.most_common()
             
-            # send_comms(decode_label_dict[final_vote])
+            if len(final_vote) >= 3: ## no decision
+                continue
+            else
+                # send_comms(decode_label_dict[final_vote[0]])
+                window_data.clear()
 
 def collect_data():
     # setup serial line
