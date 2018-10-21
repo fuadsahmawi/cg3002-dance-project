@@ -211,7 +211,7 @@ def main_predict():
         window_data.append(packet)
         count += 1
         
-        if (window_data.size() == window_size and count == window_slide_by):
+        if (window_data.size() == window_size and count >= window_slide_by):
             extracted_features = extract_feature(window_data)
         
             vote1 = svm_pred(extracted_features)
