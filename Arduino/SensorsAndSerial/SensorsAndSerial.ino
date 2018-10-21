@@ -7,9 +7,10 @@
 #define HANDSHAKE_INIT 5
 #define ACK 6
 #define PERIOD_MS 20 //for period of periodic task
-#define PACKET_SIZE 81
+#define PACKET_SIZE 45
 
 boolean debug = false;
+boolean isConnected = false;
 
 //Sensor Variables
 unsigned long currentticks, lastticks, lastticks_1;
@@ -30,6 +31,7 @@ int temperature;
 float sensorValue;   // Variable to store value from analog read
 float current = 0;       // Calculated current value
 float voltage = 0;
+float average_1 = 0.0;
 float energy = 0;
 float power = 0;
 unsigned long Prevtime;
@@ -71,7 +73,7 @@ void setup_mpu_6050_registers(){
 
 void Power() {       
     float average = 0.0;
-    float average_1 = 0.0;
+    average_1 = 0.0;
 
     Prevtime = micros();
   
@@ -135,100 +137,7 @@ void readSensors(byte* data) {
   byte byte_high; //for changing int to byte
   byte float_bytes[4]; //4 bytes in float format
   int index = 0; 
-    
-  digitalWrite(4, LOW);
-  digitalWrite(5, HIGH);
-  digitalWrite(6, HIGH);
-  digitalWrite(7, HIGH);
-  
-  read_mpu_6050_data();
-  
-  gyro_x -= gyro_x_cal_1;                                                
-  gyro_y -= gyro_y_cal_1;                                                
-  gyro_z -= gyro_z_cal_1;
-                                                                       
-  gyro_x = gyro_x / 65.5;
-  gyro_y = gyro_y / 65.5;
-  gyro_z = gyro_z / 65.5;
-
-  byte_high = highByte(gyro_x);
-  byte_low = lowByte(gyro_x);
-  data[index] = byte_high;
-  index++;
-  data[index] = byte_low;
-  index++;
-  
-  byte_high = highByte(gyro_y);
-  byte_low = lowByte(gyro_y);
-  data[index] = byte_high;
-  index++;
-  data[index] = byte_low;
-  index++;
-  
-  byte_high = highByte(gyro_z);
-  byte_low = lowByte(gyro_z);
-  data[index] = byte_high;
-  index++;
-  data[index] = byte_low;
-  index++;
-  
-  acc_x_f = acc_x / 2048.0;
-  acc_y_f = acc_y / 2048.0;
-  acc_z_f = acc_z / 2048.0;
-
-  acc_x_f = acc_x_f * 9.8;
-  acc_y_f = acc_y_f * 9.8;
-  acc_z_f = acc_z_f * 9.8;
-
-  float2Bytes(acc_x_f, float_bytes);
-  data[index] = float_bytes[0];
-  index++;
-  data[index] = float_bytes[1];
-  index++;
-  data[index] = float_bytes[2];
-  index++;
-  data[index] = float_bytes[3];
-  index++;
-
-  float2Bytes(acc_y_f, float_bytes);
-  data[index] = float_bytes[0];
-  index++;
-  data[index] = float_bytes[1];
-  index++;
-  data[index] = float_bytes[2];
-  index++;
-  data[index] = float_bytes[3];
-  index++;
-
-  float2Bytes(acc_z_f, float_bytes);
-  data[index] = float_bytes[0];
-  index++;
-  data[index] = float_bytes[1];
-  index++;
-  data[index] = float_bytes[2];
-  index++;
-  data[index] = float_bytes[3];
-  index++;
-
-//  Serial.print(F("x1_a= "));
-//  Serial.print(acc_x_f);
-//  Serial.print(F(","));
-//  Serial.print(F("y1_a= "));
-//  Serial.print(acc_y_f);
-//  Serial.print(F(","));
-//  Serial.print(F("z1_a= "));
-//  Serial.print(acc_z_f);
-//  Serial.print(F(","));
-//  Serial.print(F("x1_g= "));
-//  Serial.print(gyro_x);
-//  Serial.print(F(","));
-//  Serial.print(F("y1_g= "));
-//  Serial.print(gyro_y);
-//  Serial.print(F(","));
-//  Serial.print(F("z1_g= "));
-//  Serial.print(gyro_z);
-//  Serial.println();
-    
+      
   digitalWrite(4, HIGH);
   digitalWrite(5, LOW);
   digitalWrite(6, HIGH);
@@ -415,82 +324,8 @@ void readSensors(byte* data) {
 //  Serial.print(gyro_z);
 //  Serial.println();
   
-  digitalWrite(4, HIGH);
-  digitalWrite(5, HIGH);
-  digitalWrite(6, HIGH);
-  digitalWrite(7, LOW);
-  
-  read_mpu_6050_data();
-  
-  gyro_x -= gyro_x_cal_4;                                                //Subtract the offset calibration value from the raw gyro_x value
-  gyro_y -= gyro_y_cal_4;                                                //Subtract the offset calibration value from the raw gyro_y value
-  gyro_z -= gyro_z_cal_4;
-                                                                        //Subtract the offset calibration value from the raw gyro_z value
-  gyro_x = gyro_x / 65.5;
-  gyro_y = gyro_y / 65.5;
-  gyro_z = gyro_z / 65.5;
-
-  byte_high = highByte(gyro_x);
-  byte_low = lowByte(gyro_x);
-  data[index] = byte_high;
-  index++;
-  data[index] = byte_low;
-  index++;
-  
-  byte_high = highByte(gyro_y);
-  byte_low = lowByte(gyro_y);
-  data[index] = byte_high;
-  index++;
-  data[index] = byte_low;
-  index++;
-  
-  byte_high = highByte(gyro_z);
-  byte_low = lowByte(gyro_z);
-  data[index] = byte_high;
-  index++;
-  data[index] = byte_low;
-  index++;
-  
-  acc_x_f = acc_x / 2048.0;
-  acc_y_f = acc_y / 2048.0;
-  acc_z_f = acc_z / 2048.0;
-
-  acc_x_f = acc_x_f * 9.8;
-  acc_y_f = acc_y_f * 9.8;
-  acc_z_f = acc_z_f * 9.8;
-
-  float2Bytes(acc_x_f, float_bytes);
-  data[index] = float_bytes[0];
-  index++;
-  data[index] = float_bytes[1];
-  index++;
-  data[index] = float_bytes[2];
-  index++;
-  data[index] = float_bytes[3];
-  index++;
-
-  float2Bytes(acc_y_f, float_bytes);
-  data[index] = float_bytes[0];
-  index++;
-  data[index] = float_bytes[1];
-  index++;
-  data[index] = float_bytes[2];
-  index++;
-  data[index] = float_bytes[3];
-  index++;
-
-  float2Bytes(acc_z_f, float_bytes);
-  data[index] = float_bytes[0];
-  index++;
-  data[index] = float_bytes[1];
-  index++;
-  data[index] = float_bytes[2];
-  index++;
-  data[index] = float_bytes[3];
-  index++;
-
   //voltage and current
-  //Power();
+  Power();
   
   float2Bytes(current, float_bytes);
   data[index] = float_bytes[0];
@@ -502,7 +337,7 @@ void readSensors(byte* data) {
   data[index] = float_bytes[3];
   index++;
 
-  float2Bytes(voltage, float_bytes);
+  float2Bytes(average_1, float_bytes);
   data[index] = float_bytes[0];
   index++;
   data[index] = float_bytes[1];
@@ -540,26 +375,6 @@ void setupSensors() {
   pinMode(6, OUTPUT);                                            // sets the digital pin 6 as output  
   pinMode(7, OUTPUT);                                            // sets the digital pin 7 as output
 
-  digitalWrite(4, LOW);
-  digitalWrite(5, HIGH);
-  digitalWrite(6, HIGH);
-  digitalWrite(7, HIGH);
-
-  if (debug) { Serial.println("passed pin setup"); }
-  
-  setup_mpu_6050_registers();                                 //Setup first MPU-6050 (500dfs / +/-8g) and start the gyro
-  
-  if (debug) { Serial.println("passed mpu6050 setup"); }
-  
-  for (int cal_int = 0; cal_int < 100 ; cal_int ++){
-    read_mpu_6050_data(); 
-    gyro_x_cal_1 += gyro_x;                                              //Add the gyro x-axis offset to the gyro_x_cal variable
-    gyro_y_cal_1 += gyro_y;                                              //Add the gyro y-axis offset to the gyro_y_cal variable
-    gyro_z_cal_1 += gyro_z;                                              //Add the gyro z-axis offset to the gyro_z_cal variable
-    delay(3);                                                          //Delay 3us to simulate the 250Hz program loop
-    
-  }
-  
   digitalWrite(4, HIGH);
   digitalWrite(5, LOW);
   digitalWrite(6, HIGH);
@@ -586,19 +401,6 @@ void setupSensors() {
     delay(3);                                                          //Delay 3us to simulate the 250Hz program loop
   }
 
-  digitalWrite(4, HIGH);
-  digitalWrite(5, HIGH);
-  digitalWrite(6, HIGH);
-  digitalWrite(7, LOW);
-  setup_mpu_6050_registers();                                              //Setup fourth MPU-6050 (500dfs / +/-8g) and start the gyro
-  for (int cal_int = 0; cal_int < 100 ; cal_int ++){
-    read_mpu_6050_data(); 
-    gyro_x_cal_4 += gyro_x;                                              //Add the gyro x-axis offset to the gyro_x_cal variable
-    gyro_y_cal_4 += gyro_y;                                              //Add the gyro y-axis offset to the gyro_y_cal variable
-    gyro_z_cal_4 += gyro_z;                                              //Add the gyro z-axis offset to the gyro_z_cal variable
-    delay(3);                                                              //Delay 3us to simulate the 250Hz program loop
-  } 
-
   gyro_x_cal_1 /= 100;                                                  //Divide the gyro_x_cal variable by 2000 to get the avarage offset
   gyro_y_cal_1 /= 100;                                                  //Divide the gyro_y_cal variable by 2000 to get the avarage offset
   gyro_z_cal_1 /= 100;                                                  //Divide the gyro_z_cal variable by 2000 to get the avarage offset
@@ -615,12 +417,8 @@ void setupSensors() {
   gyro_y_cal_4 /= 100;                                                  //Divide the gyro_y_cal variable by 2000 to get the avarage offset
   gyro_z_cal_4 /= 100;
   
-  //Serial.println(F("Calibration Done")); //DEBUG
   if (debug) { Serial.println("passed calibration"); }
 }
-
-
-boolean isConnected = false;
 
 void task1(void *p) {
    if (debug) { Serial.println("entered task1"); }
@@ -630,18 +428,20 @@ void task1(void *p) {
    TickType_t prevTime = xTaskGetTickCount();
    
    while(1) {
-//      while (!isConnected) { // Handshaking between RPi and Arduino Mega -- consider refactoring
-//        int handshake_init = Serial.read();
-//        if (handshake_init == HANDSHAKE_INIT) {
-//          Serial.write(ACK);
-//          while (!Serial.available()) {
-//          }
-//          int ack = Serial.read();
-//          if (ack == ACK) {
-//            isConnected = true;
-//          }
-//        }
-//      }
+      
+      // Handshaking between RPi and Arduino Mega -- consider refactoring
+      while (!isConnected) { 
+        int handshake_init = Serial.read();
+        if (handshake_init == HANDSHAKE_INIT) {
+          Serial.write(ACK);
+          while (!Serial.available()) {
+          }
+          int ack = Serial.read();
+          if (ack == ACK) {
+            isConnected = true;
+          }
+        }
+      }
       //Handshaking passed
 
       prevTime = xTaskGetTickCount();
