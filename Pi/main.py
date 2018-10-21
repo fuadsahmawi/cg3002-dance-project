@@ -129,10 +129,12 @@ def init_models():
     knn_model = pickle.load(open("knn_model", 'rb'))
             
 def svm_pred(window_data):
-    return -1
+	svm_model = joblib.load("SVM.cls")
+    return svm_model.predict(window_data)
     
 def rf_pred(window_data):
-    return -1
+	rf_model = joblib.load("RanFor.cls")
+    return rf_model.predict(window_data)
 
 def knn_pred(window_data):
     return knn_model.predict(window_data)
