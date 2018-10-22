@@ -1,14 +1,16 @@
 import pandas as pd
 
-chicken = pd.read_csv(r"chicken.csv") #label = 2
+chicken = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\chicken.csv") #label = 3
 
-number7 = pd.read_csv(r"number7.csv") #label = 1
+number7 = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\number7.csv") #label = 2
 
-sidestep = pd.read_csv(r"sidestep.csv") #Label = 3
+sidestep = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\sidestep.csv") #Label = 4
 
-wipers = pd.read_csv(r"wipers.csv") #Label = 0
+wipers = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\wipers.csv") #Label = 1
 
-turnclap = pd.read_csv(r"turnclap.csv") #Label = 4
+turnclap = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\turnclap.csv") #Label = 5
+
+neutral = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\neutral.csv") #Label = 0
 
 i=0
 features = []
@@ -124,7 +126,7 @@ for line in chicken.iterrows():
     feature.append(peakGyrX2)
     feature.append(peakGyrY2)
     feature.append(peakGyrZ2)
-    labels.append(2)
+    labels.append(3)
     features.append(feature)
     feature = []
     
@@ -241,7 +243,7 @@ for line in number7.iterrows():
     feature.append(peakGyrX2)
     feature.append(peakGyrY2)
     feature.append(peakGyrZ2)
-    labels.append(1)
+    labels.append(2)
     features.append(feature)
     feature =[]
     
@@ -358,7 +360,7 @@ for line in sidestep.iterrows():
     feature.append(peakGyrX2)
     feature.append(peakGyrY2)
     feature.append(peakGyrZ2)
-    labels.append(3)
+    labels.append(4)
     features.append(feature)
     feature =[]
     
@@ -475,7 +477,7 @@ for line in wipers.iterrows():
     feature.append(peakGyrX2)
     feature.append(peakGyrY2)
     feature.append(peakGyrZ2)
-    labels.append(0)
+    labels.append(1)
     features.append(feature)
     feature =[]
     
@@ -592,7 +594,7 @@ for line in turnclap.iterrows():
     feature.append(peakGyrX2)
     feature.append(peakGyrY2)
     feature.append(peakGyrZ2)
-    labels.append(4)
+    labels.append(5)
     features.append(feature)
     feature =[]
     
@@ -600,6 +602,123 @@ for line in turnclap.iterrows():
         break
     else:
         m = m + overlapNum
+
+n=0
+numRowsOfneutral = neutral.shape[0]
+
+for line in neutral.iterrows():
+    
+    sumAccX1 = 0
+    sumAccY1 = 0
+    sumAccZ1 = 0
+    sumAccX2 = 0
+    sumAccY2 = 0
+    sumAccZ2 = 0
+    sumGyrX1 = 0
+    sumGyrY1 = 0
+    sumGyrZ1 = 0
+    sumGyrX2 = 0
+    sumGyrY2 = 0
+    sumGyrZ2 = 0
+    
+    for index in range(numOfData):
+        sumAccX1 = sumAccX1 + neutral.accx1[n+index]
+        sumAccY1 = sumAccY1 + neutral.accy1[n+index]
+        sumAccZ1 = sumAccZ1 + neutral.accz1[n+index]
+        sumAccX2 = sumAccX2 + neutral.accx2[n+index]
+        sumAccY2 = sumAccY2 + neutral.accy2[n+index]
+        sumAccZ2 = sumAccZ2 + neutral.accz2[n+index]
+        sumGyrX1 = sumGyrX1 + neutral.gyrx1[n+index]
+        sumGyrY1 = sumGyrY1 + neutral.gyry1[n+index]
+        sumGyrZ1 = sumGyrZ1 + neutral.gyrz1[n+index]
+        sumGyrX2 = sumGyrX2 + neutral.gyrx2[n+index]
+        sumGyrY2 = sumGyrY2 + neutral.gyry2[n+index]
+        sumGyrZ2 = sumGyrZ2 + neutral.gyrz2[n+index]
+    
+    meanAccX1 = sumAccX1/numOfData
+    meanAccY1 = sumAccY1/numOfData
+    meanAccZ1 = sumAccZ1/numOfData
+    meanAccX2 = sumAccX2/numOfData
+    meanAccY2 = sumAccY2/numOfData
+    meanAccZ2 = sumAccZ2/numOfData
+    meanGyrX1 = sumGyrX1/numOfData
+    meanGyrY1 = sumGyrY1/numOfData
+    meanGyrZ1 = sumGyrZ1/numOfData
+    meanGyrX2 = sumGyrX2/numOfData
+    meanGyrY2 = sumGyrY2/numOfData
+    meanGyrZ2 = sumGyrZ2/numOfData
+    feature.append(meanAccX1)
+    feature.append(meanAccY1)
+    feature.append(meanAccZ1)
+    feature.append(meanGyrX1)
+    feature.append(meanGyrY1)
+    feature.append(meanGyrZ1)
+    feature.append(meanAccX2)
+    feature.append(meanAccY2)
+    feature.append(meanAccZ2)
+    feature.append(meanGyrX2)
+    feature.append(meanGyrY2)
+    feature.append(meanGyrZ2)
+
+    peakAccX1 = neutral.accx1[m]
+    peakAccY1 = neutral.accy1[m]
+    peakAccZ1 = neutral.accz1[m]
+    peakAccX2 = neutral.accx2[m]
+    peakAccY2 = neutral.accy2[m]
+    peakAccZ2 = neutral.accz2[m]
+    peakGyrX1 = neutral.gyrx1[m]
+    peakGyrY1 = neutral.gyry1[m]
+    peakGyrZ1 = neutral.gyrz1[m]
+    peakGyrX2 = neutral.gyrx2[m]
+    peakGyrY2 = neutral.gyry2[m]
+    peakGyrZ2 = neutral.gyrz2[m]
+    
+    for a in range(numOfData):
+        if(neutral.accx1[n+a] > peakAccX1):
+            peakX = neutral.accx1[n+a]
+        if(neutral.accy1[n+a] > peakAccY1):
+            peakY = neutral.accy1[n+a]
+        if(neutral.accz1[n+a] > peakAccZ1):
+            peakZ = neutral.accz1[n+a]
+        if(neutral.accx2[n+a] > peakAccX2):
+            peakX = neutral.accx2[n+a]
+        if(neutral.accy2[n+a] > peakAccY2):
+            peakY = neutral.accy2[n+a]
+        if(neutral.accz2[n+a] > peakAccZ2):
+            peakZ = neutral.accz2[n+a]
+        if(neutral.gyrx1[n+a] > peakGyrX1):
+            peakX = neutral.gyrx1[n+a]
+        if(neutral.gyry1[n+a] > peakGyrY1):
+            peakY = neutral.gyry1[n+a]
+        if(neutral.gyrz1[n+a] > peakGyrZ1):
+            peakZ = neutral.gyrz1[n+a]
+        if(neutral.gyrx2[n+a] > peakGyrX2):
+            peakX = neutral.gyrx2[n+a]
+        if(neutral.gyry2[n+a] > peakGyrY2):
+            peakY = neutral.gyry2[n+a]
+        if(neutral.gyrz2[n+a] > peakGyrZ2):
+            peakZ = neutral.gyrz2[n+a]
+            
+    feature.append(peakAccX1)
+    feature.append(peakAccY1)
+    feature.append(peakAccZ1)
+    feature.append(peakAccX2)
+    feature.append(peakAccY2)
+    feature.append(peakAccZ2)
+    feature.append(peakGyrX1)
+    feature.append(peakGyrY1)
+    feature.append(peakGyrZ1)
+    feature.append(peakGyrX2)
+    feature.append(peakGyrY2)
+    feature.append(peakGyrZ2)
+    labels.append(0)
+    features.append(feature)
+    feature =[]
+    
+    if( (n + overlapNum) > (numRowsOfneutral - numOfData)):
+        break
+    else:
+        n = n + overlapNum
         
 FEATURES = features
 LABELS = labels
@@ -616,15 +735,15 @@ model = svm.SVC(kernel='linear')
 
 from sklearn.model_selection import cross_val_score
 
-scores = cross_val_score(model, x_train, y_train, cv = 5)
+scores = cross_val_score(model, x_train, y_train, cv = 10)
 print(scores)
 
-#model.fit(x_train,y_train)
+model.fit(x_train,y_train)
 
 from sklearn.externals import joblib
 joblib.dump(model, "SVM.cls")
 
-model1 = joblib.load("SVM.cls")
+#model1 = joblib.load("SVM.cls")
 
 #from sklearn.metrics import *
 
