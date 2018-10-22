@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from pandas import read_csv
 from sklearn.externals import joblib
 from sklearn.metrics import accuracy_score
@@ -44,10 +44,10 @@ def validate_k(X_train, y_train):
     print("The optimal number of neighbors is %d" % optimal_k)
 
     # plot misclassification error vs k
-    plt.plot(neighbors, MSE)
-    plt.xlabel('Number of Neighbors K')
-    plt.ylabel('Misclassification Error')
-    plt.show()
+    #plt.plot(neighbors, MSE)
+    #plt.xlabel('Number of Neighbors K')
+    #plt.ylabel('Misclassification Error')
+    #plt.show()
     
     return optimal_k
 
