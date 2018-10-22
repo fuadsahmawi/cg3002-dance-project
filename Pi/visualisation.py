@@ -29,9 +29,10 @@ pyplot.plot(window, acc1_y)
 
 acc1_z = df.values[window, 5]
 pyplot.plot(window, acc1_z)
+pyplot.title('Sensor 2')
 
 
-pyplot.subplot(2,1,1)
+pyplot.subplot(2,1,2)
 
 g2_x = df.values[window, 6]
 pyplot.plot(window, g2_x)
@@ -50,5 +51,6 @@ pyplot.plot(window, acc2_y)
 
 acc2_z = df.values[window, 11]
 pyplot.plot(window, acc2_z)
+pyplot.title('Sensor 3')
 
 pyplot.show()
