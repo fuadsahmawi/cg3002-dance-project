@@ -1,0 +1,16 @@
+tried:
+
+sudo pip3.6 install -i https://www.piwheels.org/simple
+-> no distribution found
+
+sudo pip3.6 install numpy --user
+-> shows success message but `pip3.6 freeze` doesn't show numpy
+
+sudo pip3.6 install scikit-learn -vv --user -i https:www.piwheels.org/simple
+-> no version compatible with this Python, "no matching distribution found for scikit-learn"
+
+sudo pip3.6 install h5py -vv --user -i https:www.piwheels.org/simple
+-> no version compatible with this Python, "no matching distribution found for h5py"
+
+
+
