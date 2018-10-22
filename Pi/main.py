@@ -10,6 +10,8 @@ import pickle
 import serial
 from sklearn.externals import joblib
 
+import wificommms
+
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
 ACK = struct.pack("B", 6) # (6).to_bytes(1, byteorder='big') # 
@@ -18,6 +20,10 @@ PACKET_SIZE = 45
 
 # global variables
 is_connected_to_mega = False
+current = 0
+voltage = 0
+power = 0
+cumPower = 0
 
 # debugging variables
 debug = False # flag for printing debugging statements
@@ -92,7 +98,11 @@ def deserialize_packet(packet):
     data.append(voltage)
     index += 4
     
+	power = voltage*current
+	# cumPower = energy
+	
     checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
+	
     
     print("2:")
     print(data[0:3])
@@ -221,7 +231,7 @@ def main_predict():
             count += 1
 
             if (len(window_data) == window_size and count >= window_slide_by):
-	            extracted_features = extract_feature(window_data)
+	              extracted_features = extract_feature(window_data)
                 #vote1 = svm_pred(models[1], extracted_features)
                 vote1 = -1
                 vote2 = rf_pred(models[2], extracted_features)
@@ -236,10 +246,12 @@ def main_predict():
                     continue
                 else if final_vote[0] == 0: ## if vote = neutral, don't send to server
                     continue
-                else:
+                else: ## Send data over TCP to evaluation server
                     print(decode_label_dict[final_vote[0]])
                     window_data.clear()
-                    # TODO: integrate with wifi TCP/evaluation server
+                    
+                    tcp(decode_label_dict[final_vote[0]] + '|' + voltage + '|' + current + '|' + power + '|' + cumPower + '|')
+
 
         
 def collect_data():
@@ -255,6 +267,7 @@ def collect_data():
                 file_writer.writerow(values)
 
 
+                
 # ======== MAIN =========
 
 # setup serial line
