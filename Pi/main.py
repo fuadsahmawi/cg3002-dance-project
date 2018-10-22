@@ -7,6 +7,7 @@ from collections import Counter
 import csv
 import pickle
 import serial
+import wificommms
 
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
@@ -16,6 +17,10 @@ PACKET_SIZE = 45
 
 # global variables
 is_connected_to_mega = False
+current = 0
+voltage = 0
+power = 0
+cumPower = 0
 
 # debugging variables
 debug = False # flag for printing debugging statements
@@ -90,7 +95,11 @@ def deserialize_packet(packet):
     data.append(voltage)
     index += 4
     
+	power = voltage*current
+	# cumPower = energy
+	
     checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
+	
     
     # print("1:")
     # print(data[0:3])
@@ -107,8 +116,7 @@ def deserialize_packet(packet):
     print(current)
     print(voltage)
     print()
-
-
+	
     return data
     
 
@@ -234,6 +242,7 @@ def main_predict():
 	                print(decode_label_dict[final_vote[0]])
 	                window_data.clear()
 	                # TODO: integrate with wifi TCP/evaluation server
+					tcp(decode_label_dict[final_vote[0]] + '|' + voltage + '|' + current + '|' + power + '|' + cumPower + '|')
 
         
 def collect_data():

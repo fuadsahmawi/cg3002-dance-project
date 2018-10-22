@@ -86,31 +86,31 @@ def unpad(padded_data, block_size, style='pkcs7'):
     return padded_data[:-padding_len]
 
 
+def tcp(MESSAGE):
+    TCP_IP = '192.168.43.12'
+    TCP_PORT = 2345
+    BUFFER_SIZE = 100
+    # MESSAGE = b"#mermaid | 4 | 0.1 | 0.4 | 6 |"
+    SECRET_KEY = bytes("abcdefghijklmnop", 'utf-8')
 
-TCP_IP = '192.168.43.12'
-TCP_PORT = 2345
-BUFFER_SIZE = 100
-MESSAGE = b"#mermaid | 4 | 0.1 | 0.4 | 6 |"
-SECRET_KEY = bytes("abcdefghijklmnop", 'utf-8')
+    # connect to TCP socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((TCP_IP, TCP_PORT))
 
-# connect to TCP socket
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((TCP_IP, TCP_PORT))
+    # init cipher
+    init_vect = Random.new().read(AES.block_size)
+    cipher = AES.new(SECRET_KEY, AES.MODE_CBC, init_vect)
 
-# init cipher
-init_vect = Random.new().read(AES.block_size)
-cipher = AES.new(SECRET_KEY, AES.MODE_CBC, init_vect)
+    # encrypt with AES_CBC then encode w base64
+    padded_message = pad(MESSAGE, AES.block_size)
+    encoded_message = b64encode(init_vect + cipher.encrypt(padded_message))
+    print(encoded_message)
 
-# encrypt with AES_CBC then encode w base64
-padded_message = pad(MESSAGE, AES.block_size)
-encoded_message = b64encode(init_vect + cipher.encrypt(padded_message))
-print(encoded_message)
+    s.send(encoded_message)
+    data = s.recv(BUFFER_SIZE)
+    s.close()
 
-s.send(encoded_message)
-data = s.recv(BUFFER_SIZE)
-s.close()
-
-print ("received data: ", data)
+    print ("received data: ", data)
 
 
 
