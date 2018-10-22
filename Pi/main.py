@@ -5,8 +5,10 @@ import time
 import collections
 from collections import Counter
 import csv
+import numpy as np
 import pickle
 import serial
+from sklearn.externals import joblib
 
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
@@ -92,22 +94,17 @@ def deserialize_packet(packet):
     
     checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
     
-    # print("1:")
-    # print(data[0:3])
-    # print(data[3:6])
     print("2:")
     print(data[0:3])
     print(data[3:6])
+
     print("3:")
     print(data[6:9])
     print(data[9:12])
-    # print("4:")
-    # print(data[18:21])
-    # print(data[21:24])
+
     print(current)
     print(voltage)
     print()
-
 
     return data
     
@@ -122,28 +119,35 @@ def barray_to_intarray(b_array, n_bytes_per_int):
     return int_array
 
 ## global vars for main_predict()
-swm_model = None
+svm_model = None
 rf_model = None
 knn_model = None
 
 decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap'}
-           
-def init_models():
-    knn_model = pickle.load(open("knn_model", 'rb'))
-	svm_model = joblib.load("SVM.cls")
-	rf_model = joblib.load("RanFor.cls")
-            
-def svm_pred(window_data):
-    return svm_model.predict(window_data)
-    
-def rf_pred(window_data):
-    return rf_model.predict(window_data)
 
-def knn_pred(window_data):
-    return knn_model.predict(window_data)
+def init_models():
+    knn_model = joblib.load("knn_model")
+    print(knn_model)
+    svm_model = joblib.load("SVM.cls")
+    print(svm_model)
+    rf_model = joblib.load("RanFor.cls")
+    print(rf_model)
+
+    return knn_model, svm_model, rf_model
+
+def svm_pred(model, window_data):
+    return model.predict(window_data)
+    
+def rf_pred(model, window_data):
+    return model.predict(window_data)
+
+def knn_pred(model, window_data):
+    return model.predict(window_data)
 	
 def extract_feature(window_data):
-	feature = []
+    window_data = np.array(window_data)
+
+    feature = []
     meanAccX1 = window_data[:,3].mean()
     meanAccY1 = window_data[:,4].mean()
     meanAccZ1 = window_data[:,5].mean()
@@ -156,7 +160,7 @@ def extract_feature(window_data):
     meanGyrX2 = window_data[:,6].mean()
     meanGyrY2 = window_data[:,7].mean()
     meanGyrZ2 = window_data[:,8].mean()
-	feature.append(meanAccX1)
+    feature.append(meanAccX1)
     feature.append(meanAccY1)
     feature.append(meanAccZ1)
     feature.append(meanGyrX1)
@@ -169,7 +173,7 @@ def extract_feature(window_data):
     feature.append(meanGyrY2)
     feature.append(meanGyrZ2)
 	
-	peakAccX1 = window_data[:,3].max()
+    peakAccX1 = window_data[:,3].max()
     peakAccY1 = window_data[:,4].max()
     peakAccZ1 = window_data[:,5].max()
     peakAccX2 = window_data[:,9].max()
@@ -181,7 +185,7 @@ def extract_feature(window_data):
     peakGyrX2 = window_data[:,6].max()
     peakGyrY2 = window_data[:,7].max()
     peakGyrZ2 = window_data[:,8].max()
-	feature.append(peakAccX1)
+    feature.append(peakAccX1)
     feature.append(peakAccY1)
     feature.append(peakAccZ1)
     feature.append(peakAccX2)
@@ -194,7 +198,7 @@ def extract_feature(window_data):
     feature.append(peakGyrY2)
     feature.append(peakGyrZ2)
 	
-	return feature
+    return feature
     
 
 def main_predict():
@@ -205,52 +209,50 @@ def main_predict():
     ## https://stackoverflow.com/questions/4151320/efficient-circular-buffer
     window_data = collections.deque(maxlen=window_size)
 
-    init_models()
-    
+    models = init_models()
+    count = 0
     while True:
         # poll port for data packet
         ## assumed packet is list
-        raw_packet = read_packet()
+        raw_packet = read_packet(ser)
         if not isinstance(raw_packet, int):
-        	packet = deserialize_packet()
-        	window_data.append(packet)
-	        count += 1
-	        
-	        if (window_data.size() == window_size and count >= window_slide_by):
+            packet = deserialize_packet(raw_packet)
+            window_data.append(packet)
+            count += 1
+
+            if (len(window_data) == window_size and count >= window_slide_by):
 	            extracted_features = extract_feature(window_data)
-	        
-	            vote1 = svm_pred(extracted_features)
-	            vote2 = rf_pred(extracted_features)
-	            vote3 = knn_pred(extracted_features)
-	            
-	            count = 0
-	            
-	            votes = Counter(vote1, vote2, vote3)
-	            final_vote = votes.most_common()
-	            
-	            if len(final_vote) >= 3: ## no decision
-	                continue
-				else if final_vote[0] == 0: ## if vote = neutral, don send to server
-					continue
-	            else
-	                print(decode_label_dict[final_vote[0]])
-	                window_data.clear()
-	                # TODO: integrate with wifi TCP/evaluation server
+                #vote1 = svm_pred(models[1], extracted_features)
+                vote1 = -1
+                vote2 = rf_pred(models[2], extracted_features)
+                vote3 = knn_pred(models[0], extracted_features)
+                
+                count = 0
+                
+                votes = Counter(vote1, vote2, vote3)
+                final_vote = votes.most_common()
+                
+                if len(final_vote) >= 3: ## no decision
+                    continue
+                else if final_vote[0] == 0: ## if vote = neutral, don't send to server
+                    continue
+                else:
+                    print(decode_label_dict[final_vote[0]])
+                    window_data.clear()
+                    # TODO: integrate with wifi TCP/evaluation server
 
         
 def collect_data():
     with open(sys.argv[1], mode='w', newline='') as file:
-	while True:
-		# poll port for data packet
-		packet = read_packet(ser)
-		
-		# in effect, if read_packet() does not return -1 or -2
-		if not isinstance(packet, int):
-			values = deserialize_packet(packet)
-			values = values[0:12] # record sensor 2 and 3 data
-			
-			file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-			file_writer.writerow(values)
+        while True:
+            # poll port for data packet
+            packet = read_packet(ser)
+	    # in effect, if read_packet() does not return -1 or -2
+            if not isinstance(packet, int):
+                values = deserialize_packet(packet)
+                values = values[0:12] # record sensor 2 and 3 data
+                file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                file_writer.writerow(values)
 
 
 # ======== MAIN =========
@@ -266,5 +268,6 @@ while not is_connected_to_mega:
     if data == ACK:
         ser.write(ACK)
         is_connected_to_mega = True
+print("handshake passed")
 
 main_predict()
