@@ -8,10 +8,11 @@ enable uart hardware
 Running python3.6 programs:
 - install python 3.6 (follow instructions online)
 
-- pip3.6 install <all dependencies>
+- pip3 install <all dependencies>
 (includes pyserial, pycrypto, and ML libraries)
+(sudo apt-get install libatlas-base-dev)
 
-- to run python3.6 scripts, use `python3.6 <name>.py`
+- to run python3 scripts, use `python3 <name>.py`
 
 
 wireless RPi setup:
