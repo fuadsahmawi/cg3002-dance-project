@@ -126,7 +126,7 @@ swm_model = None
 rf_model = None
 knn_model = None
 
-decode_label_dict = {0:'wipers', 1:'number7', 2:'chicken', 3:'sidestep', 4:'turnclap'}
+decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap'}
            
 def init_models():
     knn_model = pickle.load(open("knn_model", 'rb'))
@@ -230,6 +230,8 @@ def main_predict():
 	            
 	            if len(final_vote) >= 3: ## no decision
 	                continue
+				else if final_vote[0] == 0: ## if vote = neutral, don send to server
+					continue
 	            else
 	                print(decode_label_dict[final_vote[0]])
 	                window_data.clear()
