@@ -660,18 +660,18 @@ for line in neutral.iterrows():
     feature.append(meanGyrY2)
     feature.append(meanGyrZ2)
 
-    peakAccX1 = neutral.accx1[m]
-    peakAccY1 = neutral.accy1[m]
-    peakAccZ1 = neutral.accz1[m]
-    peakAccX2 = neutral.accx2[m]
-    peakAccY2 = neutral.accy2[m]
-    peakAccZ2 = neutral.accz2[m]
-    peakGyrX1 = neutral.gyrx1[m]
-    peakGyrY1 = neutral.gyry1[m]
-    peakGyrZ1 = neutral.gyrz1[m]
-    peakGyrX2 = neutral.gyrx2[m]
-    peakGyrY2 = neutral.gyry2[m]
-    peakGyrZ2 = neutral.gyrz2[m]
+    peakAccX1 = neutral.accx1[n]
+    peakAccY1 = neutral.accy1[n]
+    peakAccZ1 = neutral.accz1[n]
+    peakAccX2 = neutral.accx2[n]
+    peakAccY2 = neutral.accy2[n]
+    peakAccZ2 = neutral.accz2[n]
+    peakGyrX1 = neutral.gyrx1[n]
+    peakGyrY1 = neutral.gyry1[n]
+    peakGyrZ1 = neutral.gyrz1[n]
+    peakGyrX2 = neutral.gyrx2[n]
+    peakGyrY2 = neutral.gyry2[n]
+    peakGyrZ2 = neutral.gyrz2[n]
     
     for a in range(numOfData):
         if(neutral.accx1[n+a] > peakAccX1):
@@ -739,7 +739,7 @@ RanFor.fit(x_train,y_train)
 from sklearn.externals import joblib
 joblib.dump(RanFor, "RanFor.cls")
 
-#RanFor1 = joblib.load("RanFor.cls")
+RanFor1 = joblib.load("RanFor.cls")
 
 #from sklearn.metrics import *
 
