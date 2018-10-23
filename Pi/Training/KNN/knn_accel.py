@@ -59,8 +59,8 @@ y_test =  read_csv('y_test.csv', header=0, index_col=None)
 
 print("data loaded")
 
-#optimal_k = validate_k(X_train, y_train)
-optimal_k = 1
+optimal_k = validate_k(X_train, y_train)
+#optimal_k = 1
 
 knn = KNeighborsClassifier(n_neighbors=optimal_k)
 knn.fit(X_train, y_train)
