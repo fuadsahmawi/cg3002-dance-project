@@ -75,25 +75,31 @@ void Power() {
     float average = 0.0;
     average_1 = 0.0;
 
-    Prevtime = micros();
-  
-  for (int i = 0; i<10; i++){
-    
+  Prevtime = micros();
+  analogReference(INTERNAL1V1);
+  for (int i = 0; i<1000; i++){
+   analogRead(A0);
+   analogRead(A0);
    sensorValue = analogRead(A0);
-   voltage = analogRead(A1);
+   //voltage = analogRead(A1);
 
-   sensorValue = (sensorValue * 5) / 1023;
-   voltage = (voltage * 5) / 1023;
+   sensorValue = (sensorValue * 1.1) / 1023;
+   //voltage = (voltage * 5) / 1023;
    
    average += sensorValue;
-   average_1 += voltage;
+   //average_1 += voltage;
    //delay(5);
   }
-     
-   current = (average/10.0) / (10 * 0.1);
-   average_1 = average_1 / 10;
-   average_1 = average_1 * 2;
-   power = average_1 * current;
+   analogReference(DEFAULT);
+   analogRead(A1);
+   analogRead(A1);
+   voltage = analogRead(A1);
+   voltage = (voltage * 5)/1023;  
+   current = (average/1000.0) / (10 * 0.0990);
+   //average_1 = average_1 / 10;
+   //average_1 = average_1 * 2;
+   voltage = voltage * 2;
+   power = voltage * current;
    energy += power * ((micros()-Prevtime)/ 1000000.0); 
   
 //  Serial.print(F("current = "));
@@ -337,7 +343,7 @@ void readSensors(byte* data) {
   data[index] = float_bytes[3];
   index++;
 
-  float2Bytes(average_1, float_bytes);
+  float2Bytes(voltage, float_bytes);
   data[index] = float_bytes[0];
   index++;
   data[index] = float_bytes[1];
