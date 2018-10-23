@@ -5,10 +5,10 @@ import time
 import collections
 from collections import Counter
 import csv
-from sklearn.externals import joblib
+import numpy as np
 import pickle
 import serial
-import numpy as np
+from sklearn.externals import joblib
 
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
@@ -94,22 +94,17 @@ def deserialize_packet(packet):
     
     checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
     
-    # print("1:")
-    # print(data[0:3])
-    # print(data[3:6])
     print("2:")
     print(data[0:3])
     print(data[3:6])
+
     print("3:")
     print(data[6:9])
     print(data[9:12])
-    # print("4:")
-    # print(data[18:21])
-    # print(data[21:24])
+
     print(current)
     print(voltage)
     print()
-
 
     return data
     
@@ -128,7 +123,7 @@ svm_model = None
 rf_model = None
 knn_model = None
 
-decode_label_dict = {0:'wipers', 1:'number7', 2:'chicken', 3:'sidestep', 4:'turnclap'}
+decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap'}
 
 def init_models():
     knn_model = joblib.load("knn_model")
@@ -238,6 +233,8 @@ def main_predict():
                 final_vote = votes.most_common()
                 
                 if len(final_vote) >= 3: ## no decision
+                    continue
+                else if final_vote[0] == 0: ## if vote = neutral, don't send to server
                     continue
                 else:
                     print(decode_label_dict[final_vote[0]])
