@@ -8,7 +8,7 @@ import sys
 df = read_csv(sys.argv[1], header=0, index_col=None)
 
 ## plot data per person
-window = range(0, df.shape[0])
+window = range(0, df.shape[0]) #df.shape[0]
 
 pyplot.subplot(2,1,1)
 
