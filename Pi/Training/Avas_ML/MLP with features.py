@@ -734,10 +734,10 @@ from sklearn.model_selection import cross_val_score
 
 scores = cross_val_score(mlp, x_train, y_train, cv = 5)
 print(scores)
-#RanFor.fit(x_train,y_train)
+mlp.fit(x_train,y_train)
 
-#from sklearn.externals import joblib
-#joblib.dump(RanFor, "RanFor.cls")
+from sklearn.externals import joblib
+joblib.dump(mlpr, "MLP.cls")
 
 #RanFor1 = joblib.load("RanFor.cls")
 
