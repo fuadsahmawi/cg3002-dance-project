@@ -1,6 +1,7 @@
 import struct
 import sys
 import time
+import pdb
 
 import collections
 from collections import Counter
@@ -10,7 +11,7 @@ import pickle
 import serial
 from sklearn.externals import joblib
 
-import wificommms
+#import wificommms
 
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
@@ -98,23 +99,23 @@ def deserialize_packet(packet):
     data.append(voltage)
     index += 4
     
-	power = voltage*current
-	# cumPower = energy
-	
-    checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
-	
+    power = voltage * current
+    # cumPower = energy
     
-    print("2:")
-    print(data[0:3])
-    print(data[3:6])
+    checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
+    
+    if debug:
+        print("2:")
+        print(data[0:3])
+        print(data[3:6])
 
-    print("3:")
-    print(data[6:9])
-    print(data[9:12])
+        print("3:")
+        print(data[6:9])
+        print(data[9:12])
 
-    print(current)
-    print(voltage)
-    print()
+        print(current)
+        print(voltage)
+        print()
 
     return data
     
@@ -136,9 +137,9 @@ knn_model = None
 decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap'}
 
 def init_models():
-    knn_model = joblib.load("knn_model")
+    #knn_model = joblib.load("knn_model")
     print(knn_model)
-    svm_model = joblib.load("SVM.cls")
+    #svm_model = joblib.load("SVM.cls")
     print(svm_model)
     rf_model = joblib.load("RanFor.cls")
     print(rf_model)
@@ -153,7 +154,7 @@ def rf_pred(model, window_data):
 
 def knn_pred(model, window_data):
     return model.predict(window_data)
-	
+    
 def extract_feature(window_data):
     window_data = np.array(window_data)
 
@@ -182,7 +183,7 @@ def extract_feature(window_data):
     feature.append(meanGyrX2)
     feature.append(meanGyrY2)
     feature.append(meanGyrZ2)
-	
+    
     peakAccX1 = window_data[:,3].max()
     peakAccY1 = window_data[:,4].max()
     peakAccZ1 = window_data[:,5].max()
@@ -207,8 +208,8 @@ def extract_feature(window_data):
     feature.append(peakGyrX2)
     feature.append(peakGyrY2)
     feature.append(peakGyrZ2)
-	
-    return feature
+    
+    return np.array(feature).reshape(1,-1)
     
 
 def main_predict():
@@ -231,26 +232,27 @@ def main_predict():
             count += 1
 
             if (len(window_data) == window_size and count >= window_slide_by):
-	              extracted_features = extract_feature(window_data)
+                extracted_features = extract_feature(window_data)
                 #vote1 = svm_pred(models[1], extracted_features)
                 vote1 = -1
                 vote2 = rf_pred(models[2], extracted_features)
-                vote3 = knn_pred(models[0], extracted_features)
+                #vote3 = knn_pred(models[0], extracted_features)
                 
                 count = 0
                 
-                votes = Counter(vote1, vote2, vote3)
+                votes = Counter(vote2)
                 final_vote = votes.most_common()
                 
                 if len(final_vote) >= 3: ## no decision
                     continue
-                else if final_vote[0] == 0: ## if vote = neutral, don't send to server
+                elif final_vote[0][0] == 0: ## if vote = neutral, don't send to server
+                    print(decode_label_dict[final_vote[0][0]])
                     continue
                 else: ## Send data over TCP to evaluation server
-                    print(decode_label_dict[final_vote[0]])
+                    print(decode_label_dict[final_vote[0][0]])
                     window_data.clear()
                     
-                    tcp(decode_label_dict[final_vote[0]] + '|' + voltage + '|' + current + '|' + power + '|' + cumPower + '|')
+                    #tcp(decode_label_dict[final_vote[0]] + '|' + voltage + '|' + current + '|' + power + '|' + cumPower + '|')
 
 
         
@@ -259,7 +261,7 @@ def collect_data():
         while True:
             # poll port for data packet
             packet = read_packet(ser)
-	    # in effect, if read_packet() does not return -1 or -2
+        # in effect, if read_packet() does not return -1 or -2
             if not isinstance(packet, int):
                 values = deserialize_packet(packet)
                 values = values[0:12] # record sensor 2 and 3 data
@@ -282,5 +284,7 @@ while not is_connected_to_mega:
         ser.write(ACK)
         is_connected_to_mega = True
 print("handshake passed")
+
+#pdb.set_trace()
 
 main_predict()
