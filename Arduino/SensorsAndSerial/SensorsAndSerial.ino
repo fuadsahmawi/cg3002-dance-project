@@ -36,8 +36,6 @@ float energy = 0;
 float power = 0;
 unsigned long Prevtime;
 
-// initialise reset function
-void(* resetFunc) (void) = 0;
 // Converts float to 4 bytes
 void float2Bytes(float val, byte* bytes_array){
   // Create union of shared memory space
@@ -490,7 +488,6 @@ void setup() {
 
   //Calibrate and setup sensors
   setupSensors();
-  resetFunc();
   // Create Tasks
   xTaskCreate(task1, // Pointer to the task entry function
           "Task1", // Task name
