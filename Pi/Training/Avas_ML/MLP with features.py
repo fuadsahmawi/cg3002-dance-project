@@ -1,16 +1,16 @@
 import pandas as pd
 
-chicken = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\chicken.csv") #label = 3
+chicken = pd.read_csv(r"chicken.csv") #label = 3
 
-number7 = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\number7.csv") #label = 2
+number7 = pd.read_csv(r"number7.csv") #label = 2
 
-sidestep = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\sidestep.csv") #Label = 4
+sidestep = pd.read_csv(r"sidestep.csv") #Label = 4
 
-wipers = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\wipers.csv") #Label = 1
+wipers = pd.read_csv(r"wipers.csv") #Label = 1
 
-turnclap = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\turnclap.csv") #Label = 5
+turnclap = pd.read_csv(r"turnclap.csv") #Label = 5
 
-neutral = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\neutral.csv") #Label = 0
+neutral = pd.read_csv(r"neutral.csv") #Label = 0
 
 i=0
 features = []
@@ -735,10 +735,10 @@ from sklearn.model_selection import cross_val_score
 
 scores = cross_val_score(mlp, x_train, y_train, cv = 5)
 print(scores)
-#mlp.fit(x_train,y_train)
+mlp.fit(x_train,y_train)
 
-#from sklearn.externals import joblib
-#joblib.dump(mlp, "MLP.cls")
+from sklearn.externals import joblib
+joblib.dump(mlp, "MLP.cls")
 
 #mlp1 = joblib.load("MLP.cls")
 #from sklearn.metrics import accuracy_score
