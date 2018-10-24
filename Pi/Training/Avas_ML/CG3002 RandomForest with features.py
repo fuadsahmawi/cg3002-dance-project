@@ -1,16 +1,16 @@
 import pandas as pd
 
-chicken = pd.read_csv("chicken.csv") #label = 3
+chicken = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\chicken.csv") #label = 3
 
-number7 = pd.read_csv("number7.csv") #label = 2
+number7 = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\number7.csv") #label = 2
 
-sidestep = pd.read_csv("sidestep.csv") #Label = 4
+sidestep = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\sidestep.csv") #Label = 4
 
-wipers = pd.read_csv("wipers.csv") #Label = 1
+wipers = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\wipers.csv") #Label = 1
 
-turnclap = pd.read_csv("turnclap.csv") #Label = 5
+turnclap = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\turnclap.csv") #Label = 5
 
-neutral = pd.read_csv("neutral.csv") #Label = 0
+neutral = pd.read_csv(r"C:\Users\user\Desktop\CG3002 dataset\neutral.csv") #Label = 0
 
 i=0
 features = []
