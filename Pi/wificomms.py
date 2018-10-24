@@ -15,8 +15,10 @@ from base64 import b64encode, b64decode
 This module provides minimal support for adding and removing standard padding
 from data.
 """
-
+SECRET_KEY = bytes("abcdefghijklmnop", 'utf-8')
 all = [ 'ValueError', 'pad', 'unpad' ]
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+BUFFER_SIZE = 1024
 
 from Crypto.Util.py3compat import *
 
@@ -86,20 +88,19 @@ def unpad(padded_data, block_size, style='pkcs7'):
     return padded_data[:-padding_len]
 
 
-def tcp(MESSAGE):
+def tcp_init():
     TCP_IP = '192.168.43.12'
     TCP_PORT = 2345
-    BUFFER_SIZE = 100
     # MESSAGE = b"#mermaid | 4 | 0.1 | 0.4 | 6 |"
-    SECRET_KEY = bytes("abcdefghijklmnop", 'utf-8')
 
     # connect to TCP socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((TCP_IP, TCP_PORT))
 
+def tcp(MESSAGE):
     # init cipher
     init_vect = Random.new().read(AES.block_size)
     cipher = AES.new(SECRET_KEY, AES.MODE_CBC, init_vect)
+
 
     # encrypt with AES_CBC then encode w base64
     padded_message = pad(MESSAGE, AES.block_size)
@@ -107,10 +108,7 @@ def tcp(MESSAGE):
     print(encoded_message)
 
     s.send(encoded_message)
-    data = s.recv(BUFFER_SIZE)
-    s.close()
-
-    print ("received data: ", data)
+    #data = s.recv(BUFFER_SIZE)
 
 
 

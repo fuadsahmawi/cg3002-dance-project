@@ -11,13 +11,15 @@ import pickle
 import serial
 from sklearn.externals import joblib
 
-#import wificommms
+import wificomms
 
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
 ACK = struct.pack("B", 6) # (6).to_bytes(1, byteorder='big') # 
 NAK = struct.pack("B", 25) # (25).to_bytes(1, byteorder='big')
-PACKET_SIZE = 45
+PACKET_SIZE = 49
+WAITING_TIME = 0
+REACTION_TIME = 1.5
 
 # global variables
 is_connected_to_mega = False
@@ -68,7 +70,10 @@ def deserialize_packet(packet):
     # (e.g. 0x21 -> !, 0x30 -> 0)
     # hence, do not print the byte array immediately or it will render as ascii symbols
     # instead, convert the required bytes to integers, then print or transfer)
-    
+    global current;
+    global voltage;
+    global power;
+    global cumPower;
     index = 0
     
     data = []
@@ -99,22 +104,26 @@ def deserialize_packet(packet):
     data.append(voltage)
     index += 4
     
+    cumPower = struct.unpack('f', packet[index: index+4])[0]
+    data.append(cumPower)
+    index +=4
+
     power = voltage * current
-    # cumPower = energy
     
     checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
     
     if debug:
-        print("2:")
-        print(data[0:3])
-        print(data[3:6])
+        #print("2:")
+        #print(data[0:3])
+        #print(data[3:6])
 
-        print("3:")
-        print(data[6:9])
-        print(data[9:12])
+        #print("3:")
+        #print(data[6:9])
+        #print(data[9:12])
 
         print(current)
         print(voltage)
+        print(cumPower)
         print()
 
     return data
@@ -130,21 +139,26 @@ def barray_to_intarray(b_array, n_bytes_per_int):
     return int_array
 
 ## global vars for main_predict()
-svm_model = None
+mlp_model = None
 rf_model = None
 knn_model = None
 
 decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap'}
 
 def init_models():
-    #knn_model = joblib.load("knn_model")
-    print(knn_model)
-    #svm_model = joblib.load("SVM.cls")
+    svm_model = joblib.load("SVM.cls")
     print(svm_model)
+    print()
+    
+    mlp_model = joblib.load("MLP.cls")
+    print(mlp_model)
+    print()
+    
     rf_model = joblib.load("RanFor.cls")
     print(rf_model)
-
-    return knn_model, svm_model, rf_model
+    print()
+    
+    return svm_model, mlp_model, rf_model
 
 def svm_pred(model, window_data):
     return model.predict(window_data)
@@ -153,6 +167,9 @@ def rf_pred(model, window_data):
     return model.predict(window_data)
 
 def knn_pred(model, window_data):
+    return model.predict(window_data)
+
+def model_pred(model, window_data):
     return model.predict(window_data)
     
 def extract_feature(window_data):
@@ -213,6 +230,10 @@ def extract_feature(window_data):
     
 
 def main_predict():
+    global current;
+    global voltage;
+    global power;
+    global cumPower;
     ## TODO: encode window_size and window_slide_by in model itself?
     window_size = 40
     window_slide_by = 4
@@ -221,7 +242,12 @@ def main_predict():
     window_data = collections.deque(maxlen=window_size)
 
     models = init_models()
+    time.sleep(WAITING_TIME) # wait for server to start receiving moves    
+
     count = 0
+    vote0 = 0
+    vote1 = 0
+    vote2 = 0
     while True:
         # poll port for data packet
         ## assumed packet is list
@@ -233,27 +259,41 @@ def main_predict():
 
             if (len(window_data) == window_size and count >= window_slide_by):
                 extracted_features = extract_feature(window_data)
-                #vote1 = svm_pred(models[1], extracted_features)
-                vote1 = -1
-                vote2 = rf_pred(models[2], extracted_features)
-                #vote3 = knn_pred(models[0], extracted_features)
+                # MLP
+                vote1 = model_pred(models[1], extracted_features)
+                print("model[1]: ", decode_label_dict[vote1[0]])
+
+                # Random Forest
+                vote2 = model_pred(models[2], extracted_features)
+                print("model[2]: ", decode_label_dict[vote2[0]])
                 
+                # SVM
+                vote0 = model_pred(models[0], extracted_features)
+                print("model[0]: ", decode_label_dict[vote0[0]])                
+
                 count = 0
-                
-                votes = Counter(vote2)
-                final_vote = votes.most_common()
-                
-                if len(final_vote) >= 3: ## no decision
+                votes = Counter([vote1[0], vote2[0], vote0[0]]) #.astype(np.int64)
+                vote_list = votes.most_common()
+                final_vote = vote_list[0][0]
+
+                if len(vote_list) >= 3: ## no decision
                     continue
-                elif final_vote[0][0] == 0: ## if vote = neutral, don't send to server
-                    print(decode_label_dict[final_vote[0][0]])
+                elif final_vote == 0: ## if vote = neutral, don't send to server
+                    print("final vote: neutral move detected")
+                    print()
+                    window_data.clear()
                     continue
                 else: ## Send data over TCP to evaluation server
-                    print(decode_label_dict[final_vote[0][0]])
+                    print("final vote: ", decode_label_dict[final_vote])
+                    print()
                     window_data.clear()
                     
-                    #tcp(decode_label_dict[final_vote[0]] + '|' + voltage + '|' + current + '|' + power + '|' + cumPower + '|')
-
+                    #print(voltage)
+                    #print(current)
+                    MESSAGE = bytes("#" + decode_label_dict[final_vote] + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumPower) + "|", 'utf-8')
+ 
+                    wificomms.tcp(MESSAGE)
+                    time.sleep(1.5) # give time for reaction
 
         
 def collect_data():
@@ -278,12 +318,18 @@ print("connected to serial\n")
 
 # handshake
 while not is_connected_to_mega:
+    print("attempting handshake")
     ser.write(HANDSHAKE_INIT)
     data = ser.read(1)
     if data == ACK:
         ser.write(ACK)
         is_connected_to_mega = True
+    ser.reset_input_buffer()
 print("handshake passed")
+
+wificomms.tcp_init()
+
+# time.sleep(WAITING_TIME + REACTION_TIME)
 
 #pdb.set_trace()
 

@@ -660,18 +660,18 @@ for line in neutral.iterrows():
     feature.append(meanGyrY2)
     feature.append(meanGyrZ2)
 
-    peakAccX1 = neutral.accx1[m]
-    peakAccY1 = neutral.accy1[m]
-    peakAccZ1 = neutral.accz1[m]
-    peakAccX2 = neutral.accx2[m]
-    peakAccY2 = neutral.accy2[m]
-    peakAccZ2 = neutral.accz2[m]
-    peakGyrX1 = neutral.gyrx1[m]
-    peakGyrY1 = neutral.gyry1[m]
-    peakGyrZ1 = neutral.gyrz1[m]
-    peakGyrX2 = neutral.gyrx2[m]
-    peakGyrY2 = neutral.gyry2[m]
-    peakGyrZ2 = neutral.gyrz2[m]
+    peakAccX1 = neutral.accx1[n]
+    peakAccY1 = neutral.accy1[n]
+    peakAccZ1 = neutral.accz1[n]
+    peakAccX2 = neutral.accx2[n]
+    peakAccY2 = neutral.accy2[n]
+    peakAccZ2 = neutral.accz2[n]
+    peakGyrX1 = neutral.gyrx1[n]
+    peakGyrY1 = neutral.gyry1[n]
+    peakGyrZ1 = neutral.gyrz1[n]
+    peakGyrX2 = neutral.gyrx2[n]
+    peakGyrY2 = neutral.gyry2[n]
+    peakGyrZ2 = neutral.gyrz2[n]
     
     for a in range(numOfData):
         if(neutral.accx1[n+a] > peakAccX1):
@@ -727,24 +727,24 @@ from sklearn.model_selection import train_test_split
 
 x_train,x_test,y_train,y_test = train_test_split(FEATURES,LABELS,test_size=0.1,random_state=1)
 
+
 from sklearn.neural_network import MLPClassifier
-mlp = MLPClassifier(solver = 'lbfgs', activation ='tanh', hidden_layer_sizes= (500,))
+mlp = MLPClassifier(solver = 'lbfgs', activation ='relu', alpha=1e-5, hidden_layer_sizes= (500,))
 
 from sklearn.model_selection import cross_val_score
 
 scores = cross_val_score(mlp, x_train, y_train, cv = 5)
 print(scores)
-mlp.fit(x_train,y_train)
+#mlp.fit(x_train,y_train)
 
-from sklearn.externals import joblib
-joblib.dump(mlpr, "MLP.cls")
+#from sklearn.externals import joblib
+#joblib.dump(mlp, "MLP.cls")
 
-#RanFor1 = joblib.load("RanFor.cls")
-
-#from sklearn.metrics import *
+#mlp1 = joblib.load("MLP.cls")
+#from sklearn.metrics import accuracy_score
 
 #print('accurary_train =', accuracy_score(y_train, RanFor.predict(x_train)))
-#print('accuracy_test =', accuracy_score(y_test, model.predict(x_test)))
+#print('accuracy_test =', accuracy_score(y_test, mlp1.predict(x_test)))
 #print('precision =', precision_score(y_test, model.predict(x_test)))
 #print('recall =', recall_score(y_test, model.predict(x_test)))
 #print('score =', f1_score(y_test, model.predict(x_test)))
