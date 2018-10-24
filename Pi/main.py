@@ -11,7 +11,7 @@ import pickle
 import serial
 from sklearn.externals import joblib
 
-#import wificomms
+import wificomms
 
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
@@ -68,7 +68,10 @@ def deserialize_packet(packet):
     # (e.g. 0x21 -> !, 0x30 -> 0)
     # hence, do not print the byte array immediately or it will render as ascii symbols
     # instead, convert the required bytes to integers, then print or transfer)
-    
+    global current;
+    global voltage;
+    global power;
+    global cumPower;
     index = 0
     
     data = []
@@ -221,6 +224,10 @@ def extract_feature(window_data):
     
 
 def main_predict():
+    global current;
+    global voltage;
+    global power;
+    global cumPower;
     ## TODO: encode window_size and window_slide_by in model itself?
     window_size = 40
     window_slide_by = 4
@@ -258,21 +265,32 @@ def main_predict():
 
                 count = 0
                 votes = Counter([vote1[0], vote2[0], vote0[0]]) #.astype(np.int64)
-                final_vote = votes.most_common()
+                vote_list = votes.most_common()
+                final_vote = vote_list[0][0]
 
-                if len(final_vote) >= 3: ## no decision
+                if len(vote_list) >= 3: ## no decision
                     continue
-                elif final_vote[0][0] == 0: ## if vote = neutral, don't send to server
+                elif final_vote == 0: ## if vote = neutral, don't send to server
                     print("final vote: neutral move detected")
                     print()
+                    # TODO: consider flushing buffer.
                     continue
                 else: ## Send data over TCP to evaluation server
-                    print("final vote: ", decode_label_dict[final_vote[0][0]])
+                    print("final vote: ", decode_label_dict[final_vote])
                     print()
                     window_data.clear()
                     
-                    #wificomms.tcp(decode_label_dict[final_vote[0]] + '|' + voltage + '|' + current + '|' + power + '|' + cumPower + '|')
-
+                    #print(type(decode_label_dict[final_vote]))
+                    #print(type(voltage))
+                    #print(type(current))
+                    #print(type(power))
+                    #print(type(cumPower))
+                    print(voltage)
+                    print(current)
+                    MESSAGE = bytes("#" + decode_label_dict[final_vote] + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumPower) + "|", 'utf-8')
+ 
+                    wificomms.tcp(MESSAGE)
+                    time.sleep(1.5) # give time for reaction
 
         
 def collect_data():
@@ -305,7 +323,7 @@ while not is_connected_to_mega:
         is_connected_to_mega = True
     ser.reset_input_buffer()
 print("handshake passed")
-
+wificomms.tcp_init()
 #pdb.set_trace()
 
 main_predict()
