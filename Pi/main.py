@@ -105,13 +105,13 @@ def deserialize_packet(packet):
     checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
     
     if debug:
-        print("2:")
-        print(data[0:3])
-        print(data[3:6])
+        #print("2:")
+        #print(data[0:3])
+        #print(data[3:6])
 
-        print("3:")
-        print(data[6:9])
-        print(data[9:12])
+        #print("3:")
+        #print(data[6:9])
+        #print(data[9:12])
 
         print(current)
         print(voltage)
@@ -130,7 +130,7 @@ def barray_to_intarray(b_array, n_bytes_per_int):
     return int_array
 
 ## global vars for main_predict()
-svm_model = None
+mlp_model = None
 rf_model = None
 knn_model = None
 
@@ -139,12 +139,17 @@ decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sides
 def init_models():
     #knn_model = joblib.load("knn_model")
     print(knn_model)
-    #svm_model = joblib.load("SVM.cls")
-    print(svm_model)
+    print()
+    
+    mlp_model = joblib.load("MLP.cls")
+    print(mlp_model)
+    print()
+    
     rf_model = joblib.load("RanFor.cls")
     print(rf_model)
-
-    return knn_model, svm_model, rf_model
+    print()
+    
+    return knn_model, mlp_model, rf_model
 
 def svm_pred(model, window_data):
     return model.predict(window_data)
@@ -153,6 +158,9 @@ def rf_pred(model, window_data):
     return model.predict(window_data)
 
 def knn_pred(model, window_data):
+    return model.predict(window_data)
+
+def model_pred(model, window_data):
     return model.predict(window_data)
     
 def extract_feature(window_data):
@@ -222,6 +230,8 @@ def main_predict():
 
     models = init_models()
     count = 0
+    vote1 = 0
+    vote2 = 0
     while True:
         # poll port for data packet
         ## assumed packet is list
@@ -233,23 +243,27 @@ def main_predict():
 
             if (len(window_data) == window_size and count >= window_slide_by):
                 extracted_features = extract_feature(window_data)
-                #vote1 = svm_pred(models[1], extracted_features)
-                vote1 = -1
-                vote2 = rf_pred(models[2], extracted_features)
-                #vote3 = knn_pred(models[0], extracted_features)
+                # MLP
+                vote1 = model_pred(models[1], extracted_features)
+                print("model[1]: ", decode_label_dict[vote1[0]])
+
+                # Random Forest
+                #vote2 = model_pred(models[2], extracted_features)
+                #print("model[2]: ", decode_label_dict[vote2[0]])
+
+                #vote3 = -1 #knn_pred(models[0], extracted_features)
                 
                 count = 0
-                
-                votes = Counter(vote2)
+                votes = Counter([vote1[0]]) #.astype(np.int64)
                 final_vote = votes.most_common()
-                
+
                 if len(final_vote) >= 3: ## no decision
                     continue
                 elif final_vote[0][0] == 0: ## if vote = neutral, don't send to server
-                    print(decode_label_dict[final_vote[0][0]])
+                    print("neutral move detected")
                     continue
                 else: ## Send data over TCP to evaluation server
-                    print(decode_label_dict[final_vote[0][0]])
+                    print("final vote: ", decode_label_dict[final_vote[0][0]])
                     window_data.clear()
                     
                     #tcp(decode_label_dict[final_vote[0]] + '|' + voltage + '|' + current + '|' + power + '|' + cumPower + '|')
