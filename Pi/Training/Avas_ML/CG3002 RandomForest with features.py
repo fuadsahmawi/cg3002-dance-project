@@ -739,7 +739,7 @@ RanFor.fit(x_train,y_train)
 from sklearn.externals import joblib
 joblib.dump(RanFor, "RanFor.cls")
 
-RanFor1 = joblib.load("RanFor.cls")
+#RanFor1 = joblib.load("RanFor.cls")
 
 #from sklearn.metrics import *
 
