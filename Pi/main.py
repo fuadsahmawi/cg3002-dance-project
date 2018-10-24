@@ -11,7 +11,7 @@ import pickle
 import serial
 from sklearn.externals import joblib
 
-#import wificommms
+#import wificomms
 
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
@@ -137,8 +137,8 @@ knn_model = None
 decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap'}
 
 def init_models():
-    #knn_model = joblib.load("knn_model")
-    print(knn_model)
+    svm_model = joblib.load("SVM.cls")
+    print(svm_model)
     print()
     
     mlp_model = joblib.load("MLP.cls")
@@ -149,7 +149,7 @@ def init_models():
     print(rf_model)
     print()
     
-    return knn_model, mlp_model, rf_model
+    return svm_model, mlp_model, rf_model
 
 def svm_pred(model, window_data):
     return model.predict(window_data)
@@ -230,6 +230,7 @@ def main_predict():
 
     models = init_models()
     count = 0
+    vote0 = 0
     vote1 = 0
     vote2 = 0
     while True:
@@ -248,25 +249,29 @@ def main_predict():
                 print("model[1]: ", decode_label_dict[vote1[0]])
 
                 # Random Forest
-                #vote2 = model_pred(models[2], extracted_features)
-                #print("model[2]: ", decode_label_dict[vote2[0]])
-
-                #vote3 = -1 #knn_pred(models[0], extracted_features)
+                vote2 = model_pred(models[2], extracted_features)
+                print("model[2]: ", decode_label_dict[vote2[0]])
                 
+                # SVM
+                vote0 = model_pred(models[0], extracted_features)
+                print("model[0]: ", decode_label_dict[vote0[0]])                
+
                 count = 0
-                votes = Counter([vote1[0]]) #.astype(np.int64)
+                votes = Counter([vote1[0], vote2[0], vote0[0]]) #.astype(np.int64)
                 final_vote = votes.most_common()
 
                 if len(final_vote) >= 3: ## no decision
                     continue
                 elif final_vote[0][0] == 0: ## if vote = neutral, don't send to server
-                    print("neutral move detected")
+                    print("final vote: neutral move detected")
+                    print()
                     continue
                 else: ## Send data over TCP to evaluation server
                     print("final vote: ", decode_label_dict[final_vote[0][0]])
+                    print()
                     window_data.clear()
                     
-                    #tcp(decode_label_dict[final_vote[0]] + '|' + voltage + '|' + current + '|' + power + '|' + cumPower + '|')
+                    #wificomms.tcp(decode_label_dict[final_vote[0]] + '|' + voltage + '|' + current + '|' + power + '|' + cumPower + '|')
 
 
         
@@ -292,11 +297,13 @@ print("connected to serial\n")
 
 # handshake
 while not is_connected_to_mega:
+    print("attempting handshake")
     ser.write(HANDSHAKE_INIT)
     data = ser.read(1)
     if data == ACK:
         ser.write(ACK)
         is_connected_to_mega = True
+    ser.reset_input_buffer()
 print("handshake passed")
 
 #pdb.set_trace()
