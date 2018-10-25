@@ -9,7 +9,7 @@
 #define PERIOD_MS 20 //for period of periodic task
 #define PACKET_SIZE 45
 
-boolean debug = false;
+boolean debug = true;
 boolean isConnected = false;
 
 //Sensor Variables
@@ -77,7 +77,7 @@ void Power() {
 
   Prevtime = micros();
   analogReference(INTERNAL1V1);
-  for (int i = 0; i<1000; i++){
+  //for (int i = 0; i<10; i++){
    analogRead(A0);
    analogRead(A0);
    sensorValue = analogRead(A0);
@@ -86,16 +86,16 @@ void Power() {
    sensorValue = (sensorValue * 1.1) / 1023;
    //voltage = (voltage * 5) / 1023;
    
-   average += sensorValue;
+   //average += sensorValue;
    //average_1 += voltage;
    //delay(5);
-  }
+  //}
    analogReference(DEFAULT);
    analogRead(A1);
    analogRead(A1);
    voltage = analogRead(A1);
    voltage = (voltage * 5)/1023;  
-   current = (average/1000.0) / (10 * 0.0990);
+   current = (sensorValue) / (10 * 0.0990);
    //average_1 = average_1 / 10;
    //average_1 = average_1 * 2;
    voltage = voltage * 2;
@@ -440,8 +440,7 @@ void task1(void *p) {
         int handshake_init = Serial.read();
         if (handshake_init == HANDSHAKE_INIT) {
           Serial.write(ACK);
-          while (!Serial.available()) {
-          }
+          while (!Serial.available());
           int ack = Serial.read();
           if (ack == ACK) {
             isConnected = true;
@@ -489,7 +488,6 @@ void setup() {
 
   //Calibrate and setup sensors
   setupSensors();
-  
   // Create Tasks
   xTaskCreate(task1, // Pointer to the task entry function
           "Task1", // Task name

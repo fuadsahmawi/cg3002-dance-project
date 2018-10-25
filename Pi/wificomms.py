@@ -8,20 +8,19 @@ from Crypto.Cipher import AES
 
 from base64 import b64encode, b64decode
 
-
+SECRET_KEY = bytes("abcdefghijklmnop", 'utf-8')
+BUFFER_SIZE = 1024
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # copied the padding module here because import did not work
 """ Functions to manage padding
 This module provides minimal support for adding and removing standard padding
 from data.
 """
-SECRET_KEY = bytes("abcdefghijklmnop", 'utf-8')
+
 all = [ 'ValueError', 'pad', 'unpad' ]
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-BUFFER_SIZE = 1024
 
 from Crypto.Util.py3compat import *
-
 
 def pad(data_to_pad, block_size, style='pkcs7'):
     """Apply standard padding.

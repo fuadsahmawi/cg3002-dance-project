@@ -17,7 +17,9 @@ import wificomms
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
 ACK = struct.pack("B", 6) # (6).to_bytes(1, byteorder='big') # 
 NAK = struct.pack("B", 25) # (25).to_bytes(1, byteorder='big')
-PACKET_SIZE = 45
+PACKET_SIZE = 49
+WAITING_TIME = 0
+REACTION_TIME = 1.5
 
 # global variables
 is_connected_to_mega = False
@@ -102,8 +104,11 @@ def deserialize_packet(packet):
     data.append(voltage)
     index += 4
     
+    cumPower = struct.unpack('f', packet[index: index+4])[0]
+    data.append(cumPower)
+    index +=4
+
     power = voltage * current
-    # cumPower = energy
     
     checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
     
@@ -118,6 +123,7 @@ def deserialize_packet(packet):
 
         print(current)
         print(voltage)
+        print(cumPower)
         print()
 
     return data
@@ -236,6 +242,8 @@ def main_predict():
     window_data = collections.deque(maxlen=window_size)
 
     models = init_models()
+    time.sleep(WAITING_TIME) # wait for server to start receiving moves    
+
     count = 0
     vote0 = 0
     vote1 = 0
@@ -273,20 +281,15 @@ def main_predict():
                 elif final_vote == 0: ## if vote = neutral, don't send to server
                     print("final vote: neutral move detected")
                     print()
-                    # TODO: consider flushing buffer.
+                    window_data.clear()
                     continue
                 else: ## Send data over TCP to evaluation server
                     print("final vote: ", decode_label_dict[final_vote])
                     print()
                     window_data.clear()
                     
-                    #print(type(decode_label_dict[final_vote]))
-                    #print(type(voltage))
-                    #print(type(current))
-                    #print(type(power))
-                    #print(type(cumPower))
-                    print(voltage)
-                    print(current)
+                    #print(voltage)
+                    #print(current)
                     MESSAGE = bytes("#" + decode_label_dict[final_vote] + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumPower) + "|", 'utf-8')
  
                     wificomms.tcp(MESSAGE)
@@ -323,7 +326,11 @@ while not is_connected_to_mega:
         is_connected_to_mega = True
     ser.reset_input_buffer()
 print("handshake passed")
+
 wificomms.tcp_init()
+
+# time.sleep(WAITING_TIME + REACTION_TIME)
+
 #pdb.set_trace()
 
 main_predict()
