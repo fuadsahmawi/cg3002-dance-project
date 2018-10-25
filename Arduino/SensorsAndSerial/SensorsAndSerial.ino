@@ -7,7 +7,7 @@
 #define HANDSHAKE_INIT 5
 #define ACK 6
 #define PERIOD_MS 20 //for period of periodic task
-#define PACKET_SIZE 45
+#define PACKET_SIZE 49
 
 boolean debug = true;
 boolean isConnected = false;
@@ -352,6 +352,18 @@ void readSensors(byte* data) {
   index++;
   data[index] = float_bytes[3];
   index++;
+
+  float2Bytes(energy, float_bytes);
+  data[index] = float_bytes[0];
+  index++;
+  data[index] = float_bytes[1];
+  index++;
+  data[index] = float_bytes[2];
+  index++;
+  data[index] = float_bytes[3];
+  index++;
+
+  
 
 //  Serial.print(F("x4_a= "));
 //  Serial.print(acc_x_f);
