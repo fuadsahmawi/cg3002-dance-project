@@ -31,7 +31,7 @@ int temperature;
 float sensorValue;   // Variable to store value from analog read
 float current = 0;       // Calculated current value
 float voltage = 0;
-float average_1 = 0.0;
+//float average_1 = 0.0;
 float energy = 0;
 float power = 0;
 unsigned long Prevtime;
@@ -72,27 +72,26 @@ void setup_mpu_6050_registers(){
 }
 
 void Power() {       
-    float average = 0.0;
-    average_1 = 0.0;
+  float average = 0.0,average_1 = 0.0;
 
   Prevtime = micros();
-  analogReference(INTERNAL1V1);
+  //analogReference(INTERNAL1V1);
   //for (int i = 0; i<10; i++){
-   analogRead(A0);
-   analogRead(A0);
+  // analogRead(A0);
+  // analogRead(A0);
    sensorValue = analogRead(A0);
    //voltage = analogRead(A1);
 
-   sensorValue = (sensorValue * 1.1) / 1023;
+   sensorValue = (sensorValue * 5) / 1023;
    //voltage = (voltage * 5) / 1023;
    
    //average += sensorValue;
    //average_1 += voltage;
    //delay(5);
   //}
-   analogReference(DEFAULT);
-   analogRead(A1);
-   analogRead(A1);
+   //analogReference(DEFAULT);
+   //analogRead(A1);
+   //analogRead(A1);
    voltage = analogRead(A1);
    voltage = (voltage * 5)/1023;  
    current = (sensorValue) / (10 * 0.0990);
