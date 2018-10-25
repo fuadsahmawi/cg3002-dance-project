@@ -1,3 +1,4 @@
+import math
 import struct
 import sys
 import time
@@ -18,8 +19,8 @@ HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') #
 ACK = struct.pack("B", 6) # (6).to_bytes(1, byteorder='big') # 
 NAK = struct.pack("B", 25) # (25).to_bytes(1, byteorder='big')
 PACKET_SIZE = 49
-WAITING_TIME = 0
-REACTION_TIME = 1.5
+WAITING_TIME = 50
+REACTION_TIME = 1
 
 # global variables
 is_connected_to_mega = False
@@ -97,6 +98,7 @@ def deserialize_packet(packet):
         data.append(acc_z)
        
     current = struct.unpack('f', packet[index: index + 4])[0]
+    current = current * 1000 # convert to mA    
     data.append(current)
     index += 4
     
@@ -123,6 +125,7 @@ def deserialize_packet(packet):
 
         print(current)
         print(voltage)
+        print(power)
         print(cumPower)
         print()
 
@@ -157,8 +160,12 @@ def init_models():
     rf_model = joblib.load("RanFor.cls")
     print(rf_model)
     print()
+
+#    knn_model = pickle.load(open("knn_model", "rb"))
+#    print(knn_model)
+#    print()
     
-    return svm_model, mlp_model, rf_model
+    return svm_model, mlp_model, rf_model #, knn_model
 
 def svm_pred(model, window_data):
     return model.predict(window_data)
@@ -254,11 +261,19 @@ def main_predict():
         raw_packet = read_packet(ser)
         if not isinstance(raw_packet, int):
             packet = deserialize_packet(raw_packet)
+            
+            print(packet)
+            for value in packet:
+                if str(value) == 'nan':
+                    continue
+
             window_data.append(packet)
             count += 1
 
             if (len(window_data) == window_size and count >= window_slide_by):
                 extracted_features = extract_feature(window_data)
+                print(extracted_features)
+
                 # MLP
                 vote1 = model_pred(models[1], extracted_features)
                 print("model[1]: ", decode_label_dict[vote1[0]])
@@ -271,6 +286,9 @@ def main_predict():
                 vote0 = model_pred(models[0], extracted_features)
                 print("model[0]: ", decode_label_dict[vote0[0]])                
 
+#                vote3 = model_pred(models[3], extracted_features)
+#                print("knn", decode_label_dict[vote3[0]])
+
                 count = 0
                 votes = Counter([vote1[0], vote2[0], vote0[0]]) #.astype(np.int64)
                 vote_list = votes.most_common()
@@ -278,8 +296,8 @@ def main_predict():
 
                 if len(vote_list) >= 3: ## no decision
                     continue
-                elif final_vote == 0: ## if vote = neutral, don't send to server
-                    print("final vote: neutral move detected")
+                elif vote0[0] == 0: ## if vote = neutral, don't send to server
+                    print("vote[0]: neutral move detected")
                     print()
                     window_data.clear()
                     continue
@@ -329,7 +347,7 @@ print("handshake passed")
 
 wificomms.tcp_init()
 
-# time.sleep(WAITING_TIME + REACTION_TIME)
+#time.sleep(WAITING_TIME + REACTION_TIME)
 
 #pdb.set_trace()
 
