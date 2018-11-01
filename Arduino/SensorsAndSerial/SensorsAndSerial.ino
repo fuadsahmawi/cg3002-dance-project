@@ -6,10 +6,11 @@
 #define STACK_SIZE 500
 #define HANDSHAKE_INIT 5
 #define ACK 6
-#define PERIOD_MS 20 //not exact 
+#define PERIOD_MS 20 // not exact 
 #define PACKET_SIZE 49
 
 boolean debug = false;
+
 boolean isConnected = false;
 
 //Sensor Variables
@@ -47,6 +48,12 @@ void float2Bytes(float val, byte* bytes_array){
   u.float_variable = val;
   // Assign bytes to input array
   memcpy(bytes_array, u.temp_array, 4);
+  if (debug) {
+    float reconstructed = 0;
+    Serial.println(u.float_variable);
+    reconstructed = *((float*)(u.temp_array));
+    Serial.println(reconstructed);    
+  }
 }
 
 void setup_mpu_6050_registers(){
@@ -100,23 +107,7 @@ void Power() {
    voltage = voltage * 2;
    power = voltage * current;
    energy += power * ((micros()-Prevtime)/ 1000000.0); 
-  
-//  Serial.print(F("current = "));
-//  Serial.print(current * 1000);
-//  Serial.print(F("mA"));
-//  Serial.print(F(" "));
-//  Serial.print(F("voltage = "));
-//  Serial.print(average_1, 2);
-//  Serial.print(F("V"));
-//  Serial.print(F(" "));
-//  Serial.print(F("power = "));
-//  Serial.print(power * 1000);
-//  Serial.print(F("mW"));
-//  Serial.print(F(" "));
-//  Serial.print(F("energy = "));
-//  Serial.print(energy,5);
-//  Serial.print(F("J"));
-//  Serial.println();
+
 }
 
 void read_mpu_6050_data(){
@@ -216,25 +207,6 @@ void readSensors(byte* data) {
   index++;
   data[index] = float_bytes[3];
   index++;
-
-//  Serial.print(F("x2_a= "));
-//  Serial.print(acc_x_f);
-//  Serial.print(F(","));
-//  Serial.print(F("y2_a= "));
-//  Serial.print(acc_y_f);
-//  Serial.print(F(","));
-//  Serial.print(F("z2_a= "));
-//  Serial.print(acc_z_f);
-//  Serial.print(F(","));
-//  Serial.print(F("x2_g= "));
-//  Serial.print(gyro_x);
-//  Serial.print(F(","));
-//  Serial.print(F("y2_g= "));
-//  Serial.print(gyro_y);
-//  Serial.print(F(","));
-//  Serial.print(F("z2_g= "));
-//  Serial.print(gyro_z);
-//  Serial.println();
 
   digitalWrite(4, HIGH);
   digitalWrite(5, HIGH);
@@ -437,7 +409,7 @@ void task1(void *p) {
       
       //send data to Pi -- consider using a Queue if serial data is not sent in time 
       Serial2.write(data, sizeof(data)); // send to pi
-      Serial.write(data, sizeof(data)); // send to serial monitor
+      //Serial.write(data, sizeof(data)); // send to serial monitor
            
       // read ACK from Pi and retry
 //      int ack = Serial.read();
