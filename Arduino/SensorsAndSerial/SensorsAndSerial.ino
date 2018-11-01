@@ -9,7 +9,7 @@
 #define PERIOD_MS 20 //not exact 
 #define PACKET_SIZE 49
 
-boolean debug = true;
+boolean debug = false;
 boolean isConnected = false;
 
 //Sensor Variables
@@ -309,25 +309,6 @@ void readSensors(byte* data) {
   index++;
   data[index] = float_bytes[3];
   index++;
-
-//  Serial.print(F("x3_a= "));
-//  Serial.print(acc_x_f);
-//  Serial.print(F(","));
-//  Serial.print(F("y3_a= "));
-//  Serial.print(acc_y_f);
-//  Serial.print(F(","));
-//  Serial.print(F("z3_a= "));
-//  Serial.print(acc_z_f);
-//  Serial.print(F(","));
-//  Serial.print(F("x3_g= "));
-//  Serial.print(gyro_x);
-//  Serial.print(F(","));
-//  Serial.print(F("y3_g= "));
-//  Serial.print(gyro_y);
-//  Serial.print(F(","));
-//  Serial.print(F("z3_g= "));
-//  Serial.print(gyro_z);
-//  Serial.println();
   
   //voltage and current
   Power();
@@ -362,33 +343,13 @@ void readSensors(byte* data) {
   data[index] = float_bytes[3];
   index++;
 
-  
-
-//  Serial.print(F("x4_a= "));
-//  Serial.print(acc_x_f);
-//  Serial.print(F(","));
-//  Serial.print(F("y4_a= "));
-//  Serial.print(acc_y_f);
-//  Serial.print(F(","));
-//  Serial.print(F("z4_a= "));
-//  Serial.print(acc_z_f);
-//  Serial.print(F(","));
-//  Serial.print(F("x4_g= "));
-//  Serial.print(gyro_x);
-//  Serial.print(F(","));
-//  Serial.print(F("y4_g= "));
-//  Serial.print(gyro_y);
-//  Serial.print(F(","));
-//  Serial.print(F("z4_g= "));
-//  Serial.print(gyro_z);
-//  Serial.println();
 }
 
 void setupSensors() {
   Wire.begin();  
   
-  pinMode(4, OUTPUT);                                             // sets the digital pin 4 as output
-  pinMode(5, OUTPUT);                                             // sets the digital pin 5 as output 
+  pinMode(4, OUTPUT);                                            // sets the digital pin 4 as output
+  pinMode(5, OUTPUT);                                            // sets the digital pin 5 as output 
   pinMode(6, OUTPUT);                                            // sets the digital pin 6 as output  
   pinMode(7, OUTPUT);                                            // sets the digital pin 7 as output
 
@@ -452,11 +413,11 @@ void task1(void *p) {
       
       // Handshaking between RPi and Arduino Mega -- consider refactoring
       while (!isConnected) { 
-        int handshake_init = Serial.read();
+        int handshake_init = Serial2.read();
         if (handshake_init == HANDSHAKE_INIT) {
-          Serial.write(ACK);
-          while (!Serial.available());
-          int ack = Serial.read();
+          Serial2.write(ACK);
+          while (!Serial2.available());
+          int ack = Serial2.read();
           if (ack == ACK) {
             isConnected = true;
           }
@@ -468,14 +429,15 @@ void task1(void *p) {
       
       readSensors(data);
       
-      //compute and assign checksum -- consider refactoring
+      // compute and assign checksum to last byte of data packet -- consider refactoring
       data[PACKET_SIZE - 1] = data[0];
       for (int i = 1; i < sizeof(data)-1; i++) {
         data[PACKET_SIZE - 1] = data[PACKET_SIZE - 1] ^ data[i];
       }     
       
       //send data to Pi -- consider using a Queue if serial data is not sent in time 
-      Serial.write(data, sizeof(data));
+      Serial2.write(data, sizeof(data)); // send to pi
+      Serial.write(data, sizeof(data)); // send to serial monitor
            
       // read ACK from Pi and retry
 //      int ack = Serial.read();
@@ -502,6 +464,7 @@ void task1(void *p) {
 
 void setup() {
   Serial.begin(57600);
+  Serial2.begin(57600);
 
   //Calibrate and setup sensors
   setupSensors();
