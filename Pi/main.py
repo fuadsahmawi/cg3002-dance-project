@@ -35,12 +35,11 @@ k = 0
 
 
 # pre-condition: last byte of data should be checksum
-def read_packet(serial):
-    
+def read_packet(serial): 
     if serial.in_waiting >= PACKET_SIZE :
         packet = serial.read(PACKET_SIZE)
         serial.reset_input_buffer()
-        
+
         if checksum(packet) == packet[len(packet) - 1]:
             serial.write(ACK)
             # serial.reset_input_buffer()
@@ -50,22 +49,22 @@ def read_packet(serial):
             return -1 # checksum issue
     else:
         return -2
-    
+
 def checksum(b_array):
     # check values
     csum = b_array[0]
     if len(b_array) < 2:
         raise ValueError('array must be more than size 1')
-    else:        
+    else:
         for i in range(1, len(b_array) - 1):
-            csum = csum ^ b_array[i]        
+            csum = csum ^ b_array[i]
     return csum
 
 # pre-condition: packet must be PACKET_SIZE, and of pre-defined format
 def deserialize_packet(packet):
     # returns a list of int, int, int, float, float, float etc then 2 floats
     # for current and voltage
-    
+
     # beware that endianness of arduino is little endian
     # data is in byte form, but printed as ascii characters
     # (e.g. 0x21 -> !, 0x30 -> 0)
@@ -76,43 +75,43 @@ def deserialize_packet(packet):
     global power;
     global cumPower;
     index = 0
-    
+
     data = []
-    
+
     for i in range(2): # loop 2 times for 2 sensors.
         gyro_data_array = barray_to_intarray(packet[index:index + 6], 2) # extract 3 ints from 6 bytes
         index += 6
         data.extend(gyro_data_array)
-        
+
         acc_x = struct.unpack_from('<f', packet[index: index + 4])[0]
         index += 4
         data.append(acc_x)
-        
+
         acc_y = struct.unpack_from('<f', packet[index: index + 4])[0]
         index += 4
         data.append(acc_y)
-        
+
         acc_z = struct.unpack_from('<f', packet[index: index + 4])[0]
         index += 4
         data.append(acc_z)
-       
+
     current = struct.unpack_from('<f', packet[index: index + 4])[0]
-    current = current * 1000 # convert to mA    
+    current = current * 1000 # convert to mA
     data.append(current)
     index += 4
-    
+
     voltage  =  struct.unpack_from('<f', packet[index: index + 4])[0]
     data.append(voltage)
     index += 4
-    
+
     cumPower = struct.unpack_from('<f', packet[index: index+4])[0]
     data.append(cumPower)
     index +=4
 
     power = voltage * current
-    
+
     checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
-    
+
     if debug:
         print("sensor 1:")
         print(data[0:3])
@@ -129,7 +128,7 @@ def deserialize_packet(packet):
         print()
 
     return data
-    
+
 
 
 # helper method to parse byte array from Arduino into integer array
@@ -137,7 +136,7 @@ def barray_to_intarray(b_array, n_bytes_per_int):
     int_array = []
     for i in range(0, len(b_array), n_bytes_per_int):
         int_data = int.from_bytes(b_array[i:i+n_bytes_per_int], byteorder='big', signed = True)
-        int_array.append(int_data)        
+        int_array.append(int_data)
     return int_array
 
 ## global vars for main_predict()
@@ -151,11 +150,11 @@ def init_models():
     svm_model = joblib.load("SVM.cls")
     print(svm_model)
     print()
-    
+
     mlp_model = joblib.load("MLP.cls")
     print(mlp_model)
     print()
-    
+
     rf_model = joblib.load("RanFor.cls")
     print(rf_model)
     print()
@@ -163,12 +162,12 @@ def init_models():
 #    knn_model = pickle.load(open("knn_model", "rb"))
 #    print(knn_model)
 #    print()
-    
+
     return svm_model, mlp_model, rf_model #, knn_model
 
 def svm_pred(model, window_data):
     return model.predict(window_data)
-    
+
 def rf_pred(model, window_data):
     return model.predict(window_data)
 
@@ -177,7 +176,7 @@ def knn_pred(model, window_data):
 
 def model_pred(model, window_data):
     return model.predict(window_data)
-    
+
 def extract_feature(window_data):
     window_data = np.array(window_data)
 
@@ -206,7 +205,7 @@ def extract_feature(window_data):
     feature.append(meanGyrX2)
     feature.append(meanGyrY2)
     feature.append(meanGyrZ2)
-    
+
     peakAccX1 = window_data[:,3].max()
     peakAccY1 = window_data[:,4].max()
     peakAccZ1 = window_data[:,5].max()
@@ -231,9 +230,9 @@ def extract_feature(window_data):
     feature.append(peakGyrX2)
     feature.append(peakGyrY2)
     feature.append(peakGyrZ2)
-    
+
     return np.array(feature).reshape(1,-1)
-    
+
 
 def main_predict():
     global current;
@@ -243,12 +242,12 @@ def main_predict():
     ## TODO: encode window_size and window_slide_by in model itself?
     window_size = 40
     window_slide_by = 4
-    
+
     ## https://stackoverflow.com/questions/4151320/efficient-circular-buffer
     window_data = collections.deque(maxlen=window_size)
 
     models = init_models()
-    time.sleep(WAITING_TIME) # wait for server to start receiving moves    
+    time.sleep(WAITING_TIME) # wait for server to start receiving moves
 
     count = 0
     vote0 = 0
@@ -282,10 +281,10 @@ def main_predict():
                 # Random Forest
                 vote2 = model_pred(models[2], extracted_features)
                 print("model[2]: ", decode_label_dict[vote2[0]])
-                
+
                 # SVM
                 vote0 = model_pred(models[0], extracted_features)
-                print("model[0]: ", decode_label_dict[vote0[0]])                
+                print("model[0]: ", decode_label_dict[vote0[0]])
 
 #                vote3 = model_pred(models[3], extracted_features)
 #                print("knn", decode_label_dict[vote3[0]])
@@ -306,15 +305,15 @@ def main_predict():
                     print("final vote: ", decode_label_dict[final_vote])
                     print()
                     window_data.clear()
-                    
+
                     #print(voltage)
                     #print(current)
                     MESSAGE = bytes("#" + decode_label_dict[final_vote] + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumPower) + "|", 'utf-8')
- 
+
                     #wificomms.tcp(MESSAGE)
                     time.sleep(1.5) # give time for reaction
 
-        
+
 def collect_data():
     with open(sys.argv[1], mode='w', newline='') as file:
         while True:
@@ -328,7 +327,7 @@ def collect_data():
                 file_writer.writerow(values)
 
 
-                
+
 # ======== MAIN =========
 
 # setup serial line
