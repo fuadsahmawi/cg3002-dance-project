@@ -97,15 +97,15 @@ def deserialize_packet(packet):
 
     current = struct.unpack_from('<f', packet[index: index + 4])[0]
     current = current * 1000 # convert to mA
-    data.append(current)
+    #data.append(current)
     index += 4
 
     voltage  =  struct.unpack_from('<f', packet[index: index + 4])[0]
-    data.append(voltage)
+    #data.append(voltage)
     index += 4
 
     cumPower = struct.unpack_from('<f', packet[index: index+4])[0]
-    data.append(cumPower)
+    #data.append(cumPower)
     index +=4
 
     power = voltage * current
