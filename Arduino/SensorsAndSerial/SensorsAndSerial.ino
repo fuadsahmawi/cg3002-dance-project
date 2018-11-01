@@ -6,7 +6,7 @@
 #define STACK_SIZE 500
 #define HANDSHAKE_INIT 5
 #define ACK 6
-#define PERIOD_MS 20 //for period of periodic task
+#define PERIOD_MS 20 //not exact 
 #define PACKET_SIZE 49
 
 boolean debug = true;
@@ -439,10 +439,14 @@ void setupSensors() {
 
 void task1(void *p) {
    if (debug) { Serial.println("entered task1"); }
+   
    const TickType_t xDelayDuration = pdMS_TO_TICKS(PERIOD_MS);
    byte data[PACKET_SIZE] = {}; 
    
    TickType_t prevTime = xTaskGetTickCount();
+
+   int prevMs = 0;
+   int periodInMS;
    
    while(1) {
       
@@ -462,22 +466,16 @@ void task1(void *p) {
 
       prevTime = xTaskGetTickCount();
       
-      // simulate collecting sensor data into a byte array
-//      for (int j = 0; j < PACKET_SIZE; j++) {
-//         data[j] = j;
-//      }
-
       readSensors(data);
       
       //compute and assign checksum -- consider refactoring
       data[PACKET_SIZE - 1] = data[0];
       for (int i = 1; i < sizeof(data)-1; i++) {
         data[PACKET_SIZE - 1] = data[PACKET_SIZE - 1] ^ data[i];
-      }
+      }     
       
       //send data to Pi -- consider using a Queue if serial data is not sent in time 
       Serial.write(data, sizeof(data));
-      //Serial.print(sizeof(data));
            
       // read ACK from Pi and retry
 //      int ack = Serial.read();
@@ -489,6 +487,14 @@ void task1(void *p) {
 //          vTaskSuspendAll();
 //        }
 //      }
+
+      // the following three lines helps compute actual period in ms
+      if (debug) {
+        periodInMS = millis() - prevMs;
+        Serial.println(periodInMS);
+        prevMs = millis();
+      }
+      
       vTaskDelayUntil(&prevTime, xDelayDuration);
       
    }
