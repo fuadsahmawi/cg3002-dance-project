@@ -12,14 +12,14 @@ import pickle
 import serial
 from sklearn.externals import joblib
 
-import wificomms
+#import wificomms
 
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
 ACK = struct.pack("B", 6) # (6).to_bytes(1, byteorder='big') # 
 NAK = struct.pack("B", 25) # (25).to_bytes(1, byteorder='big')
 PACKET_SIZE = 49
-WAITING_TIME = 50
+WAITING_TIME = 0
 REACTION_TIME = 1
 
 # global variables
@@ -84,29 +84,28 @@ def deserialize_packet(packet):
         index += 6
         data.extend(gyro_data_array)
         
-        
-        acc_x = struct.unpack_from('f', packet[index: index + 4])[0]
+        acc_x = struct.unpack_from('<f', packet[index: index + 4])[0]
         index += 4
         data.append(acc_x)
         
-        acc_y = struct.unpack_from('f', packet[index: index + 4])[0]
+        acc_y = struct.unpack_from('<f', packet[index: index + 4])[0]
         index += 4
         data.append(acc_y)
         
-        acc_z = struct.unpack_from('f', packet[index: index + 4])[0]
+        acc_z = struct.unpack_from('<f', packet[index: index + 4])[0]
         index += 4
         data.append(acc_z)
        
-    current = struct.unpack_from('f', packet[index: index + 4])[0]
+    current = struct.unpack_from('<f', packet[index: index + 4])[0]
     current = current * 1000 # convert to mA    
     data.append(current)
     index += 4
     
-    voltage  =  struct.unpack_from('f', packet[index: index + 4])[0]
+    voltage  =  struct.unpack_from('<f', packet[index: index + 4])[0]
     data.append(voltage)
     index += 4
     
-    cumPower = struct.unpack_from('f', packet[index: index+4])[0]
+    cumPower = struct.unpack_from('<f', packet[index: index+4])[0]
     data.append(cumPower)
     index +=4
 
@@ -115,18 +114,18 @@ def deserialize_packet(packet):
     checksum = int.from_bytes(packet[PACKET_SIZE-1:PACKET_SIZE], byteorder='big')
     
     if debug:
-        #print("2:")
-        #print(data[0:3])
-        #print(data[3:6])
+        print("sensor 1:")
+        print(data[0:3])
+        print(data[3:6])
 
-        #print("3:")
-        #print(data[6:9])
-        #print(data[9:12])
+        print("sensor 2:")
+        print(data[6:9])
+        print(data[9:12])
 
-        print(current)
-        print(voltage)
-        print(power)
-        print(cumPower)
+        print("current: ", current)
+        print("voltage: ", voltage)
+        print("power: ", power)
+        print("cumPower: ", cumPower)
         print()
 
     return data
@@ -259,10 +258,12 @@ def main_predict():
         # poll port for data packet
         ## assumed packet is list
         raw_packet = read_packet(ser)
+
         if not isinstance(raw_packet, int):
+            #print("raw bytes: ", raw_packet)
+            #print("".join(format(x, '02x') for  x in raw_packet))
+            #print()
             packet = deserialize_packet(raw_packet)
-            
-            print(packet)
             for value in packet:
                 if str(value) == 'nan':
                     print('nan detected')
@@ -310,7 +311,7 @@ def main_predict():
                     #print(current)
                     MESSAGE = bytes("#" + decode_label_dict[final_vote] + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumPower) + "|", 'utf-8')
  
-                    wificomms.tcp(MESSAGE)
+                    #wificomms.tcp(MESSAGE)
                     time.sleep(1.5) # give time for reaction
 
         
@@ -345,7 +346,7 @@ while not is_connected_to_mega:
     ser.reset_input_buffer()
 print("handshake passed")
 
-wificomms.tcp_init()
+# wificomms.tcp_init()
 
 #time.sleep(WAITING_TIME + REACTION_TIME)
 
