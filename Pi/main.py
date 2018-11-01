@@ -85,28 +85,28 @@ def deserialize_packet(packet):
         data.extend(gyro_data_array)
         
         
-        acc_x = struct.unpack('f', packet[index: index + 4])[0]
+        acc_x = struct.unpack_from('f', packet[index: index + 4])[0]
         index += 4
         data.append(acc_x)
         
-        acc_y = struct.unpack('f', packet[index: index + 4])[0]
+        acc_y = struct.unpack_from('f', packet[index: index + 4])[0]
         index += 4
         data.append(acc_y)
         
-        acc_z = struct.unpack('f', packet[index: index + 4])[0]
+        acc_z = struct.unpack_from('f', packet[index: index + 4])[0]
         index += 4
         data.append(acc_z)
        
-    current = struct.unpack('f', packet[index: index + 4])[0]
+    current = struct.unpack_from('f', packet[index: index + 4])[0]
     current = current * 1000 # convert to mA    
     data.append(current)
     index += 4
     
-    voltage  =  struct.unpack('f', packet[index: index + 4])[0]
+    voltage  =  struct.unpack_from('f', packet[index: index + 4])[0]
     data.append(voltage)
     index += 4
     
-    cumPower = struct.unpack('f', packet[index: index+4])[0]
+    cumPower = struct.unpack_from('f', packet[index: index+4])[0]
     data.append(cumPower)
     index +=4
 
@@ -265,7 +265,7 @@ def main_predict():
             print(packet)
             for value in packet:
                 if str(value) == 'nan':
-                    continue
+                    print('nan detected')
 
             window_data.append(packet)
             count += 1
