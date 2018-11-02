@@ -6,10 +6,10 @@
 #define STACK_SIZE 500
 #define HANDSHAKE_INIT 5
 #define ACK 6
-#define PERIOD_MS 20 // not exact 
+#define PERIOD_MS 10 // not exact 
 #define PACKET_SIZE 49
 
-boolean debug = false;
+boolean debug = true;
 
 boolean isConnected = false;
 
