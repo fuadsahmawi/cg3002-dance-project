@@ -330,8 +330,8 @@ def collect_data():
             if not isinstance(packet, int):
                 values = deserialize_packet(packet)
                 for value in values:
-                    if str(value) == 'nan':
-                        print("nan detected")
+                    if str(value) == 'nan' or value > 500 or value < -500:
+                        print("invalid value detected")
                         nan_flag = 1
                 if nan_flag == 1:
                     nan_flag = 0
