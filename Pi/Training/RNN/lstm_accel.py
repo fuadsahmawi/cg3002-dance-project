@@ -18,8 +18,6 @@ from keras.utils import to_categorical
 from keras.optimizers import Adam
 import matplotlib.pyplot as plt
 
-## Sampling rate: 20Hz (1 sample every 50ms)
-
 def plot_data(data):
     plt.plot(data)
     plt.show()
