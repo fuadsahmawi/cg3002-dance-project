@@ -1,3 +1,4 @@
+import os
 import pickle
 import numpy as np
 from pandas import unique
@@ -16,26 +17,25 @@ def overlap_data(data, window_size, win_shift_amt):
         array_3d[start_idx] = window
     return array_3d
     
-WINDOW_SIZE = 30
+WINDOW_SIZE = 50
 WIN_SHIFT_AMT = WINDOW_SIZE // 10 # 90% overlap
 NUM_FEATURES = 12
 
 ## load dataset from each person
 ## note: if separate session (same person and move), save as different 'person'
-DF_LIST = list()
-DF_LIST.append(read_csv('ben.csv', header=0, index_col=None))
-DF_LIST.append(read_csv('eryao.csv', header=0, index_col=None))
-DF_LIST.append(read_csv('fuad.csv', header=0, index_col=None))
-DF_LIST.append(read_csv('melvin.csv', header=0, index_col=None))
-DF_LIST.append(read_csv('xinhui.csv', header=0, index_col=None))
-DF_LIST.append(read_csv('yp.csv', header=0, index_col=None))
 
 ALL_TRAIN = np.empty(shape=(0, WINDOW_SIZE, NUM_FEATURES+1))
 ALL_VALIDATE = np.empty(shape=(0, WINDOW_SIZE, NUM_FEATURES+1))
 ALL_TEST = np.empty(shape=(0, WINDOW_SIZE, NUM_FEATURES+1))
 
+combined_dir = os.path.join(os.getcwd(), 'combined')
+filenames = next(os.walk(combined_dir))[2] ## get file (not dir) names only
+
 ## cut data into chunks of window_size per person so that data won't overlap between persons
-for idx, df in enumerate(DF_LIST):
+for filename in filenames:
+    file_path = os.path.join(combined_dir, filename)
+    df = read_csv(file_path, header=0, index_col=None)
+
     activity_list = unique(df['activity'])
     for a in activity_list:
         activity_dataset = df[df.activity == a]

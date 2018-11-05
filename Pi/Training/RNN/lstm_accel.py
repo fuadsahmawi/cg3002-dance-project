@@ -16,8 +16,13 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM, Activation
 from keras.utils import to_categorical
 from keras.optimizers import Adam
+import matplotlib.pyplot as plt
 
 ## Sampling rate: 20Hz (1 sample every 50ms)
+
+def plot_data(data):
+    plt.plot(data)
+    plt.show()
 
 ALL_TRAIN = pickle.load(open("all_train", "rb"))
 ALL_VALIDATE = pickle.load(open("all_validate", "rb"))
@@ -40,6 +45,8 @@ NUM_ACTIVITIES = len(np.unique(TRAIN_Y))
 TRAIN_Y = to_categorical(TRAIN_Y, num_classes=NUM_ACTIVITIES)
 VALIDATE_Y = to_categorical(VALIDATE_Y, num_classes=NUM_ACTIVITIES)
 
+#plot_data(TRAIN_X[0])
+
 # design network
 model = Sequential()
 ## define LSTM with 50 neurons in the first hidden layer and 1 neuron in the output layer 
@@ -50,22 +57,16 @@ model.compile(loss='mae', optimizer='adam')
 
 # fit network
 ## batch size = (data sent in per iteration, until entire dataset = 1 epoch)
-history = model.fit(x=TRAIN_X, y=TRAIN_Y, validation_data=(VALIDATE_X, VALIDATE_Y), epochs=30, verbose=2, shuffle=True)
-
-# make prediction
-y_pred = model.predict(TEST_X)
-y_pred = np.argmax(y_pred,axis=-1)
-
-acc = accuracy_score(TEST_Y, y_pred)
-cm = confusion_matrix(TEST_Y, y_pred)
-print(acc)
-print(cm)
+history = model.fit(x=TRAIN_X, y=TRAIN_Y, validation_data=(VALIDATE_X, VALIDATE_Y), epochs=20, verbose=2, shuffle=True)
 
 model.save("rnn.h5")
 
 """
 TODO: visualize overlapped data (esp wipers, chicken high error)
 TODO: loss decreases but val_loss stable
+- https://stats.stackexchange.com/questions/260294/keras-why-does-loss-decrease-while-val-loss-increase
+- https://towardsdatascience.com/deep-learning-personal-notes-part-1-lesson-2-8946fe970b95
+- overfitting, not enough data
 DONE: make rnn output categorical labels
 - last layer outputs softmax probabilities
 DONE: extend to 6 categories

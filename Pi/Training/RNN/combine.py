@@ -1,5 +1,6 @@
 import os
 import sys
+from pandas import DataFrame
 from pandas import read_csv
 import numpy as np
     
@@ -24,10 +25,11 @@ if __name__ == "__main__":
     fuad_csv = np.empty(shape=(0,13))
     eryao_csv = np.empty(shape=(0,13))
     
-    person_data = {'ben':ben_csv, 'melvin':melvin_csv, 'yp':yp_csv, 'xinhui':xinhui_csv, 'fuad':fuad_csv, 'eryao':eryao_csv}
+    person_data = {'ben':ben_csv, 'melvin':melvin_csv, 'yp':yp_csv, 'xh':xinhui_csv, 'fuad':fuad_csv, 'eryao':eryao_csv}
     
     for file_name in filenames:
         person_name = file_name.split('_')[1]
+        person_name = person_name.split('.')[0]
         
         file_path = os.path.join(labelled_dir, file_name)
         file = read_csv(file_path)
@@ -38,6 +40,11 @@ if __name__ == "__main__":
             person_data[person_name] = np.append(person_data[person_name], file, axis=0)
         
     for key, value in person_data.items():
-        file_path = key + ".csv"
-        np.savetxt(file_path, value, delimiter=",", fmt='%s')
+        file_path = os.path.join(combined_dir, key + ".csv")
+        #np.savetxt(file_path, value, delimiter=",", fmt='%s')
+        df = DataFrame(value, columns=headers)
+        df.to_csv(file_path, index=False, header=True, sep=',')
+    
+    
+    
     
