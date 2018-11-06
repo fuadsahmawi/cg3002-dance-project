@@ -6,7 +6,7 @@
 #define STACK_SIZE 500
 #define HANDSHAKE_INIT 5
 #define ACK 6
-#define PERIOD_MS 10 // not exact 
+#define PERIOD_MS 19 // not exact 
 #define PACKET_SIZE 49
 
 boolean debug = true;
@@ -48,12 +48,12 @@ void float2Bytes(float val, byte* bytes_array){
   u.float_variable = val;
   // Assign bytes to input array
   memcpy(bytes_array, u.temp_array, 4);
-  if (debug) {
-    float reconstructed = 0;
-    Serial.println(u.float_variable);
-    reconstructed = *((float*)(u.temp_array));
-    Serial.println(reconstructed);    
-  }
+//  if (debug) {
+//    float reconstructed = 0;
+//    Serial.println(u.float_variable);
+//    reconstructed = *((float*)(u.temp_array));
+//    Serial.println(reconstructed);    
+//  }
 }
 
 void setup_mpu_6050_registers(){
@@ -371,9 +371,9 @@ void setupSensors() {
 }
 
 void task1(void *p) {
-   if (debug) { Serial.println("entered task1"); }
+   //if (debug) { Serial.println("entered task1"); }
    
-   const TickType_t xDelayDuration = pdMS_TO_TICKS(PERIOD_MS);
+   const TickType_t xDelayDuration = 1; //pdMS_TO_TICKS(PERIOD_MS); TICKRATE is 200Hz
    byte data[PACKET_SIZE] = {}; 
    
    TickType_t prevTime = xTaskGetTickCount();
@@ -400,6 +400,7 @@ void task1(void *p) {
       prevTime = xTaskGetTickCount();
       
       readSensors(data);
+      if (debug) Serial.println("ok sensors");
       
       // compute and assign checksum to last byte of data packet -- consider refactoring
       data[PACKET_SIZE - 1] = data[0];
@@ -408,10 +409,11 @@ void task1(void *p) {
       }     
       
       //send data to Pi -- consider using a Queue if serial data is not sent in time 
+      //Serial2.flush();
       Serial2.write(data, sizeof(data)); // send to pi
-      //Serial.write(data, sizeof(data)); // send to serial monitor
-           
-      // read ACK from Pi and retry
+      if (debug) Serial.println("ok serial");
+ 
+//      // read ACK from Pi and retry
 //      int ack = Serial.read();
 //      if (ack != ACK) { //issue with ACK (as seen from double printing on pi side)
 //        //retry sending
