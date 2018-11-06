@@ -385,11 +385,11 @@ void task1(void *p) {
       
       // Handshaking between RPi and Arduino Mega -- consider refactoring
       while (!isConnected) { 
-        int handshake_init = Serial2.read();
+        int handshake_init = Serial1.read();
         if (handshake_init == HANDSHAKE_INIT) {
-          Serial2.write(ACK);
-          while (!Serial2.available());
-          int ack = Serial2.read();
+          Serial1.write(ACK);
+          while (!Serial1.available());
+          int ack = Serial1.read();
           if (ack == ACK) {
             isConnected = true;
           }
@@ -409,8 +409,8 @@ void task1(void *p) {
       }     
       
       //send data to Pi -- consider using a Queue if serial data is not sent in time 
-      //Serial2.flush();
-      Serial2.write(data, sizeof(data)); // send to pi
+      //Serial1.flush();
+      Serial1.write(data, sizeof(data)); // send to pi
       if (debug) Serial.println("ok serial");
  
 //      // read ACK from Pi and retry
@@ -438,7 +438,7 @@ void task1(void *p) {
 
 void setup() {
   Serial.begin(57600);
-  Serial2.begin(57600);
+  Serial1.begin(57600);
 
   //Calibrate and setup sensors
   setupSensors();
