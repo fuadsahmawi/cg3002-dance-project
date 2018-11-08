@@ -11,6 +11,8 @@ import numpy as np
 import pickle
 import serial
 from sklearn.externals import joblib
+from pandas as pd
+from sklearn.preprocessing import StandardScaler
 
 #import wificomms
 
@@ -177,60 +179,23 @@ def model_pred(model, window_data):
         return -1
 
 def extract_feature(window_data):
-    window_data = np.array(window_data)
+    window_data = pd.DataFrame(window_data)
+	
+	meanData = window_data.mean()
+	peak = window_data.max()
+	Q3 = window_data.quantile(0.75)
+    Q1 = window_data.quantile(0.25)
+	iqr = Q3 - Q1
+	
+	feature = feature.append(meanData, ignore_index = True)
+	feature = feature.append(peak, ignore_index = True)
+	feature = feature.append(iqr, ignore_index = True)
+	
+	scaler = StandardScaler()
+	scaler.fit(feature)
+	feature = scaler.transform(feature)
 
-    feature = []
-    meanAccX1 = window_data[:,3].mean()
-    meanAccY1 = window_data[:,4].mean()
-    meanAccZ1 = window_data[:,5].mean()
-    meanAccX2 = window_data[:,9].mean()
-    meanAccY2 = window_data[:,10].mean()
-    meanAccZ2 = window_data[:,11].mean()
-    meanGyrX1 = window_data[:,0].mean()
-    meanGyrY1 = window_data[:,1].mean()
-    meanGyrZ1 = window_data[:,2].mean()
-    meanGyrX2 = window_data[:,6].mean()
-    meanGyrY2 = window_data[:,7].mean()
-    meanGyrZ2 = window_data[:,8].mean()
-    feature.append(meanAccX1)
-    feature.append(meanAccY1)
-    feature.append(meanAccZ1)
-    feature.append(meanGyrX1)
-    feature.append(meanGyrY1)
-    feature.append(meanGyrZ1)
-    feature.append(meanAccX2)
-    feature.append(meanAccY2)
-    feature.append(meanAccZ2)
-    feature.append(meanGyrX2)
-    feature.append(meanGyrY2)
-    feature.append(meanGyrZ2)
-
-    peakAccX1 = window_data[:,3].max()
-    peakAccY1 = window_data[:,4].max()
-    peakAccZ1 = window_data[:,5].max()
-    peakAccX2 = window_data[:,9].max()
-    peakAccY2 = window_data[:,10].max()
-    peakAccZ2 = window_data[:,11].max()
-    peakGyrX1 = window_data[:,0].max()
-    peakGyrY1 = window_data[:,1].max()
-    peakGyrZ1 = window_data[:,2].max()
-    peakGyrX2 = window_data[:,6].max()
-    peakGyrY2 = window_data[:,7].max()
-    peakGyrZ2 = window_data[:,8].max()
-    feature.append(peakAccX1)
-    feature.append(peakAccY1)
-    feature.append(peakAccZ1)
-    feature.append(peakAccX2)
-    feature.append(peakAccY2)
-    feature.append(peakAccZ2)
-    feature.append(peakGyrX1)
-    feature.append(peakGyrY1)
-    feature.append(peakGyrZ1)
-    feature.append(peakGyrX2)
-    feature.append(peakGyrY2)
-    feature.append(peakGyrZ2)
-
-    return np.array(feature).reshape(1,-1)
+    return feature
 
 
 def main_predict():
