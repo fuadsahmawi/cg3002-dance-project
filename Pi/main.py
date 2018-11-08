@@ -11,7 +11,7 @@ import numpy as np
 import pickle
 import serial
 from sklearn.externals import joblib
-from pandas as pd
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 #import wificomms
