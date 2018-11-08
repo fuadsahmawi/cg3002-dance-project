@@ -180,20 +180,20 @@ def model_pred(model, window_data):
 
 def extract_feature(window_data):
     window_data = pd.DataFrame(window_data)
-	
-	meanData = window_data.mean()
-	peak = window_data.max()
-	Q3 = window_data.quantile(0.75)
+    
+    meanData = window_data.mean()
+    peak = window_data.max()
+    Q3 = window_data.quantile(0.75)
     Q1 = window_data.quantile(0.25)
-	iqr = Q3 - Q1
-	
-	feature = feature.append(meanData, ignore_index = True)
-	feature = feature.append(peak, ignore_index = True)
-	feature = feature.append(iqr, ignore_index = True)
-	
-	scaler = StandardScaler()
-	scaler.fit(feature)
-	feature = scaler.transform(feature)
+    iqr = Q3 - Q1
+    
+    feature = feature.append(meanData, ignore_index = True)
+    feature = feature.append(peak, ignore_index = True)
+    feature = feature.append(iqr, ignore_index = True)
+    
+    scaler = StandardScaler()
+    scaler.fit(feature)
+    feature = scaler.transform(feature)
 
     return feature
 
