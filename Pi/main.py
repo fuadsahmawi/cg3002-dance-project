@@ -204,8 +204,8 @@ def main_predict():
     global power;
     global cumPower;
     ## TODO: encode window_size and window_slide_by in model itself?
-    window_size = 40
-    window_slide_by = 4
+    window_size = 110
+    window_slide_by = 11
 
     ## https://stackoverflow.com/questions/4151320/efficient-circular-buffer
     window_data = collections.deque(maxlen=window_size)
