@@ -313,10 +313,18 @@ def main_predict():
 
             if (len(window_data) == window_size and count >= window_slide_by):
                 
-                vote3 = model[3].predict_classes(np.expand_dims(list(window_data),axis=0))
-                print("rnn", vote3)
-
+                vote3 = models[3].predict_classes(np.expand_dims(list(window_data),axis=0))
                 count = 0
+                
+                if vote3 == 0: ## if vote = neutral, don't send to server
+                    print("neutral move detected\n")
+                    window_data.clear()
+                else: ## Send data over TCP to evaluation server
+                    print("final vote: ", decode_label_dict[vote3], "\n")
+                    window_data.clear()
+
+                    time.sleep(1) # give time for reaction
+                
 
 def collect_data():
     with open(sys.argv[1], mode='w', newline='') as file:
