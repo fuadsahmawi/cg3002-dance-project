@@ -275,8 +275,8 @@ def main_predict():
     global power;
     global cumPower;
     ## TODO: encode window_size and window_slide_by in model itself?
-    window_size = 110
-    window_slide_by = 11
+    window_size = 75
+    window_slide_by = window_size // 10
 
     ## https://stackoverflow.com/questions/4151320/efficient-circular-buffer
     window_data = collections.deque(maxlen=window_size)
@@ -313,7 +313,7 @@ def main_predict():
 
             if (len(window_data) == window_size and count >= window_slide_by):
                 
-                vote3 = models[3].predict(window_data)
+                vote3 = model[3].predict_classes(np.expand_dims(list(window_data),axis=0))
                 print("rnn", vote3)
 
                 count = 0
