@@ -5,3 +5,5 @@ steps to train RNN
 4) run lstm_accel.py
 
 outputs rnn.h5 which is the trained rnn model
+
+8 Nov model: num7 is sometimes mispredicted as salute
