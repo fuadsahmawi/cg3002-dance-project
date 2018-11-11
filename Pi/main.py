@@ -13,6 +13,7 @@ import serial
 from sklearn.externals import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
+from keras.models import load_model
 
 #import wificomms
 
@@ -165,7 +166,11 @@ def init_models():
 #    print(knn_model)
 #    print()
 
-    return svm_model, mlp_model, rf_model #, knn_model
+    rnn_model = load_model('rnn.h5')
+    print(rnn_model)
+    print()
+
+    return svm_model, mlp_model, rf_model, rnn_model
 
 def model_pred(model, window_data):
     all_probas = model.predict_proba(window_data)
@@ -322,8 +327,9 @@ def main_predict():
                 vote2 = model_pred(models[2], extracted_features)
                 print("model[2]: ", decode_label_dict[vote2])
 
-#                vote3 = model_pred(models[3], extracted_features)
-#                print("knn", decode_label_dict[vote3[0]])
+                # RNN
+                vote3 = models[3].predict(window_data)
+                print("rnn", vote3)
 
                 count = 0
                 votes = Counter([vote0, vote1, vote2]) #.astype(np.int64)
