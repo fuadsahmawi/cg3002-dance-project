@@ -257,6 +257,10 @@ def extract_feature(window_data):
 	feature.append(iqrGyrY2)
 	feature.append(iqrGyrZ2)
 	
+	scaler = StandardScaler()
+	scaler.fit(feature)
+	feature = scaler.transform(feature)
+	
     return np.array(feature).reshape(1,-1)
 
 
