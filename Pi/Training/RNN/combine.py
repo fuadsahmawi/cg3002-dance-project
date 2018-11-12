@@ -18,26 +18,22 @@ if __name__ == "__main__":
     
     headers = ["gyrx1","gyry1", "gyrz1", "accx1", "accy1", "accz1", "gyrx2", "gyry2", "gyrz2", "accx2", "accy2", "accz2", "activity"]
     
-    ben_csv = np.empty(shape=(0,13))
-    melvin_csv = np.empty(shape=(0,13))
-    yp_csv = np.empty(shape=(0,13))
-    xinhui_csv = np.empty(shape=(0,13))
-    fuad_csv = np.empty(shape=(0,13))
-    eryao_csv = np.empty(shape=(0,13))
+    person_data = {}
     
-    person_data = {'ben':ben_csv, 'melvin':melvin_csv, 'yp':yp_csv, 'xh':xinhui_csv, 'fuad':fuad_csv, 'eryao':eryao_csv}
-    
-    for file_name in filenames:
-        person_name = file_name.split('_')[1]
-        person_name = person_name.split('.')[0]
+    for file_name in filenames:        
+        person_name = file_name[file_name.find("_")+1:file_name.find(".")]
         
         file_path = os.path.join(labelled_dir, file_name)
         file = read_csv(file_path)
-        
-        if person_data[person_name] is None:
-            person_data[person_name] = file
+                
+        if person_name not in person_data:
+            person_data[person_name] = np.array(file)
         else:
             person_data[person_name] = np.append(person_data[person_name], file, axis=0)
+            
+        print(person_name)
+
+    print("write to file")
         
     for key, value in person_data.items():
         file_path = os.path.join(combined_dir, key + ".csv")

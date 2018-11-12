@@ -12,6 +12,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Activation
 from keras.utils import to_categorical
@@ -53,18 +54,20 @@ model.add(Dense(NUM_ACTIVITIES))
 model.add(Activation('softmax'))
 model.compile(loss='mae', optimizer='adam')
 
+callbacks = [EarlyStopping(monitor='val_loss', min_delta=0, patience=2),
+             ModelCheckpoint(filepath='best_model.h5', monitor='val_loss', save_best_only=True)]
+
 # fit network
 ## batch size = (data sent in per iteration, until entire dataset = 1 epoch)
-history = model.fit(x=TRAIN_X, y=TRAIN_Y, validation_data=(VALIDATE_X, VALIDATE_Y), epochs=20, verbose=2, shuffle=True)
-
-model.save("rnn.h5")
+history = model.fit(x=TRAIN_X, y=TRAIN_Y, validation_data=(VALIDATE_X, VALIDATE_Y), epochs=20, callbacks=callbacks, verbose=2, shuffle=True)
 
 """
 TODO: visualize overlapped data (esp wipers, chicken high error)
-TODO: loss decreases but val_loss stable
+DONE: loss decreases but val_loss stable
 - https://stats.stackexchange.com/questions/260294/keras-why-does-loss-decrease-while-val-loss-increase
 - https://towardsdatascience.com/deep-learning-personal-notes-part-1-lesson-2-8946fe970b95
 - overfitting, not enough data
+-- got more data
 DONE: make rnn output categorical labels
 - last layer outputs softmax probabilities
 DONE: extend to 6 categories
