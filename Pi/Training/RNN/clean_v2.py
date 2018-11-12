@@ -17,9 +17,9 @@ def overlap_data(data, window_size, win_shift_amt):
         array_3d[start_idx] = window
     return array_3d
     
-## Sampling rate: 50Hz (1 sample every 20ms)
+## Sampling rate: 55 Hz
     
-WINDOW_SIZE = 75 #1.5s window
+WINDOW_SIZE = 110 #2s window
 WIN_SHIFT_AMT = WINDOW_SIZE // 10 # 90% overlap
 NUM_FEATURES = 12
 
