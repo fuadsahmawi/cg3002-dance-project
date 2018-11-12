@@ -15,7 +15,7 @@ import serial
 from sklearn.externals import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from keras.models import load_model
+#from keras.models import load_model
 
 #import wificomms
 
@@ -35,7 +35,7 @@ power = 0
 cumPower = 0
 
 # debugging variables
-debug = False # flag for printing debugging statements
+debug = True # flag for printing debugging statements
 k = 0
 
 
@@ -165,10 +165,10 @@ def init_models():
     print()
 
     #rnn_model = load_model('rnn.h5')
-    print(rnn_model)
+    #print(rnn_model)
     print()
 
-    return svm_model, mlp_model, rf_model, rnn_model
+    return svm_model, mlp_model, rf_model #, rnn_model
 
 def model_pred(model, window_data):
     all_probas = model.predict_proba(window_data)
@@ -176,7 +176,7 @@ def model_pred(model, window_data):
     predicted_class = np.argmax(all_probas, axis=-1)
     proba = all_probas[0][predicted_class]
     
-    if proba > 0.8:
+    if proba > 0.3:
         return predicted_class[0]
     else:
         return -1
@@ -198,16 +198,16 @@ def extract_feature(window_data):
     meanGyrY2 = window_data[:,7].mean()
     meanGyrZ2 = window_data[:,8].mean()
     feature.append(meanAccX1)
-    feature.append(meanAccY1)
-    feature.append(meanAccZ1)
-    feature.append(meanGyrX1)
-    feature.append(meanGyrY1)
-    feature.append(meanGyrZ1)
     feature.append(meanAccX2)
+    feature.append(meanAccY1)
     feature.append(meanAccY2)
+    feature.append(meanAccZ1)
     feature.append(meanAccZ2)
+    feature.append(meanGyrX1)
     feature.append(meanGyrX2)
+    feature.append(meanGyrY1)
     feature.append(meanGyrY2)
+    feature.append(meanGyrZ1)
     feature.append(meanGyrZ2)
     
     peakAccX1 = window_data[:,3].max()
@@ -223,16 +223,16 @@ def extract_feature(window_data):
     peakGyrY2 = window_data[:,7].max()
     peakGyrZ2 = window_data[:,8].max()
     feature.append(peakAccX1)
-    feature.append(peakAccY1)
-    feature.append(peakAccZ1)
     feature.append(peakAccX2)
+    feature.append(peakAccY1)
     feature.append(peakAccY2)
+    feature.append(peakAccZ1)
     feature.append(peakAccZ2)
     feature.append(peakGyrX1)
-    feature.append(peakGyrY1)
-    feature.append(peakGyrZ1)
     feature.append(peakGyrX2)
+    feature.append(peakGyrY1)
     feature.append(peakGyrY2)
+    feature.append(peakGyrZ1)
     feature.append(peakGyrZ2)
 
     iqrAccX1 = np.percentile(window_data[:,3], 75) - np.percentile(window_data[:,3],25)
@@ -248,16 +248,16 @@ def extract_feature(window_data):
     iqrGyrY2 = np.percentile(window_data[:,7], 75) - np.percentile(window_data[:,7],25)
     iqrGyrZ2 = np.percentile(window_data[:,8], 75) - np.percentile(window_data[:,8],25)
     feature.append(iqrAccX1)
-    feature.append(iqrAccY1)
-    feature.append(iqrAccZ1)
     feature.append(iqrAccX2)
+    feature.append(iqrAccY1)
     feature.append(iqrAccY2)
+    feature.append(iqrAccZ1)
     feature.append(iqrAccZ2)
     feature.append(iqrGyrX1)
-    feature.append(iqrGyrY1)
-    feature.append(iqrGyrZ1)
     feature.append(iqrGyrX2)
+    feature.append(iqrGyrY1)
     feature.append(iqrGyrY2)
+    feature.append(iqrGyrZ1)
     feature.append(iqrGyrZ2)
 
     feature = np.array(feature).reshape(1,-1)
@@ -387,6 +387,7 @@ def collect_data():
 
 def handshake():
     print("attempting handshake")
+    ser.reset_input_buffer()
     ser.write(HANDSHAKE_INIT)
     data = ser.read(1)
     if data == ACK:
@@ -413,7 +414,9 @@ models = init_models()
 
 while(1):
     command = input("enter 'go' to start prediction")
-
+    
     if command == "go":
+        print("go")
         if handshake() == True:
+            print("passed")
             main_predict()
