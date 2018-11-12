@@ -14,7 +14,16 @@ TEST_Y = TEST_Y[:, 0]
 # load model
 model = load_model('rnn.h5')
 
-# make prediction
+# make 1 prediction
+y_pred = model.predict(np.expand_dims(TEST_X[0],axis=0))
+predicted_class = np.argmax(y_pred, axis=-1)
+proba = y_pred[0][predicted_class[0]]
+
+print(predicted_class)
+print(proba)
+print(TEST_Y[0])
+
+# make many predictions
 y_pred = model.predict(TEST_X)
 
 count = 0
