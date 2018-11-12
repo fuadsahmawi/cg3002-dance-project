@@ -4,7 +4,7 @@ import sys
 import time
 import pdb
 import threading
-import Queue
+import queue
 
 import collections
 from collections import Counter
