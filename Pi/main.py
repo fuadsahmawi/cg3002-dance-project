@@ -25,7 +25,7 @@ ACK = struct.pack("B", 6) # (6).to_bytes(1, byteorder='big') #
 NAK = struct.pack("B", 25) # (25).to_bytes(1, byteorder='big')
 PACKET_SIZE = 49
 WAITING_TIME = 0
-REACTION_TIME = 1
+REACTION_TIME = 1.5
 
 # global variables
 is_connected_to_mega = False
@@ -164,7 +164,7 @@ def init_models():
     print(rf_model)
     print()
 
-    rnn_model = load_model('rnn.h5')
+    #rnn_model = load_model('rnn.h5')
     print(rnn_model)
     print()
 
@@ -338,19 +338,20 @@ def main_predict():
                 vote2 = model_pred(models[2], extracted_features)
                 print("rf: ", decode_label_dict[vote2])
 
-                vote3 = models[3].predict(np.expand_dims(list(window_data),axis=0))
-                predicted_class = np.argmax(y_pred, axis=-1)
-                proba = vote3[0][predicted_class[0]]
+                # RNN
+                #vote3 = models[3].predict(np.expand_dims(list(window_data),axis=0))
+                #predicted_class = np.argmax(y_pred, axis=-1)
+                #proba = vote3[0][predicted_class[0]]
                 
-                if proba > 0.8:
-                    vote3 = predicted_class[0]
-                else:
-                    vote3 = -1
-                print("rnn: ", decode_label_dict[vote3])
+                #if proba > 0.8:
+                #    vote3 = predicted_class[0]
+                #else:
+                #    vote3 = -1
+                #print("rnn: ", decode_label_dict[vote3])
                 print()
 
                 count = 0
-                votes = Counter([vote0, vote1, vote2, vote3])
+                votes = Counter([vote0, vote1, vote2])
                 vote_list = votes.most_common()
                 final_vote = vote_list[0][0]
 
