@@ -3,6 +3,8 @@ import struct
 import sys
 import time
 import pdb
+import threading
+import Queue
 
 import collections
 from collections import Counter
@@ -268,21 +270,29 @@ def extract_feature(window_data):
     
     return np.array(feature).reshape(1,-1)
 
+def add_input(input_queue):
+    while True:
+        input_queue.put(sys.stdin.read(1))
 
 def main_predict():
     global current;
     global voltage;
     global power;
     global cumPower;
+    
+    # https://stackoverflow.com/questions/2408560/python-nonblocking-console-input
+    # thread and system input for controlling python program execution
+    input_queue = Queue.Queue()
+    input_thread = threading.Thread(target=add_input, args=(input_queue,))
+    input_thread.daemon = True
+    input_thread.start()
+
     ## TODO: encode window_size and window_slide_by in model itself?
     window_size = 110
     window_slide_by = 11
 
     ## https://stackoverflow.com/questions/4151320/efficient-circular-buffer
     window_data = collections.deque(maxlen=window_size)
-
-    models = init_models()
-    time.sleep(WAITING_TIME) # wait for server to start receiving moves
 
     count = 0
     vote0 = 0
@@ -352,6 +362,8 @@ def main_predict():
 
                     #wificomms.tcp(MESSAGE)
                     time.sleep(REACTION_TIME) # give time for reaction
+            if not input_queue.empty():
+                return
 
 
 def collect_data():
@@ -367,6 +379,17 @@ def collect_data():
                 file_writer.writerow(values)
 
 
+def handshake():
+    print("attempting handshake")
+    ser.write(HANDSHAKE_INIT)
+    data = ser.read(1)
+    if data == ACK:
+        ser.write(ACK)
+        ser.reset_input_buffer()
+        print("handshake passed")
+        return True
+    else:
+        return False    
 
 # ======== MAIN =========
 
@@ -374,21 +397,19 @@ def collect_data():
 ser = serial.Serial('/dev/serial0', 57600, timeout=1)
 print("connected to serial\n")
 
-# handshake
-while not is_connected_to_mega:
-    print("attempting handshake")
-    ser.write(HANDSHAKE_INIT)
-    data = ser.read(1)
-    if data == ACK:
-        ser.write(ACK)
-        is_connected_to_mega = True
-    ser.reset_input_buffer()
-print("handshake passed")
-
 # wificomms.tcp_init()
-
 #time.sleep(WAITING_TIME + REACTION_TIME)
 
-#pdb.set_trace()
+models = init_models()
 
-main_predict()
+#print("sleeping for " REACTION_TIME)
+#time.sleep(REACTION_TIME)
+
+while(1):
+    if handshake() == True:
+        pass
+    else: 
+        continue
+    command = input("enter 'go' to start prediction")
+    if command = "go":
+        main_predict()
