@@ -15,6 +15,7 @@ import serial
 from sklearn.externals import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
+from keras.models import load_model
 
 #import wificomms
 
@@ -148,7 +149,7 @@ mlp_model = None
 rf_model = None
 knn_model = None
 
-decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'number6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'bow'}
+decode_label_dict = {-1:'no_pred', 0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'number6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'bow'}
 
 def init_models():
     svm_model = joblib.load("SVM.cls")
@@ -163,17 +164,17 @@ def init_models():
     print(rf_model)
     print()
 
-#    knn_model = pickle.load(open("knn_model", "rb"))
-#    print(knn_model)
-#    print()
+    rnn_model = load_model('rnn.h5')
+    print(rnn_model)
+    print()
 
-    return svm_model, mlp_model, rf_model #, knn_model
+    return svm_model, mlp_model, rf_model, rnn_model
 
 def model_pred(model, window_data):
     all_probas = model.predict_proba(window_data)
     
     predicted_class = np.argmax(all_probas, axis=-1)
-    proba = all_probas[predicted_class]
+    proba = all_probas[0][predicted_class]
     
     if proba > 0.8:
         return predicted_class
@@ -279,7 +280,7 @@ def main_predict():
     
     # https://stackoverflow.com/questions/2408560/python-nonblocking-console-input
     # thread and system input for controlling python program execution
-    input_queue = Queue.Queue()
+    input_queue = queue.Queue()
     input_thread = threading.Thread(target=add_input, args=(input_queue,))
     input_thread.daemon = True
     input_thread.start()
@@ -324,21 +325,28 @@ def main_predict():
 
                 # SVM
                 vote0 = model_pred(models[0], extracted_features)
-                print("model[0]: ", decode_label_dict[vote0])
+                print("svm: ", decode_label_dict[vote0])
                 
                 # MLP
                 vote1 = model_pred(models[1], extracted_features)
-                print("model[1]: ", decode_label_dict[vote1])
+                print("mlp: ", decode_label_dict[vote1])
 
                 # Random Forest
                 vote2 = model_pred(models[2], extracted_features)
-                print("model[2]: ", decode_label_dict[vote2])
+                print("rf: ", decode_label_dict[vote2])
 
-#                vote3 = model_pred(models[3], extracted_features)
-#                print("knn", decode_label_dict[vote3[0]])
+                vote3 = models[3].predict(np.expand_dims(list(window_data),axis=0))
+                predicted_class = np.argmax(y_pred, axis=-1)
+                proba = vote3[0][predicted_class[0]]
+                
+                if proba > 0.8:
+                    vote3 = predicted_class[0]
+                else:
+                    vote3 = -1
+                print("rnn: ", decode_label_dict[vote3])
 
                 count = 0
-                votes = Counter([vote0, vote1, vote2]) #.astype(np.int64)
+                votes = Counter([vote0, vote1, vote2, vote3])
                 vote_list = votes.most_common()
                 final_vote = vote_list[0][0]
 
