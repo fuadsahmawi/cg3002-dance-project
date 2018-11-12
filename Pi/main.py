@@ -259,11 +259,12 @@ def extract_feature(window_data):
     feature.append(iqrGyrY2)
     feature.append(iqrGyrZ2)
 
-    feature = np.array(feature).reshape(-1,1)
+    feature = np.array(feature).reshape(1,-1)
 
     scaler = StandardScaler()
     scaler.fit(feature)
     feature = scaler.transform(feature)
+
     return feature
 
 def add_input(input_queue):
@@ -406,5 +407,5 @@ while(1):
     else: 
         continue
     command = input("enter 'go' to start prediction")
-    if command = "go":
+    if command == "go":
         main_predict()
