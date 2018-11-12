@@ -35,7 +35,7 @@ power = 0
 cumPower = 0
 
 # debugging variables
-debug = True # flag for printing debugging statements
+debug = False # flag for printing debugging statements
 k = 0
 
 
@@ -177,7 +177,7 @@ def model_pred(model, window_data):
     proba = all_probas[0][predicted_class]
     
     if proba > 0.8:
-        return predicted_class
+        return predicted_class[0]
     else:
         return -1
 
@@ -306,6 +306,9 @@ def main_predict():
             #print("raw bytes: ", raw_packet)
             #print("".join(format(x, '02x') for  x in raw_packet))
             #print()
+            if not input_queue.empty():
+                return
+
             packet = deserialize_packet(raw_packet)
             for value in packet:
                 if str(value) == 'nan':
@@ -344,6 +347,7 @@ def main_predict():
                 else:
                     vote3 = -1
                 print("rnn: ", decode_label_dict[vote3])
+                print()
 
                 count = 0
                 votes = Counter([vote0, vote1, vote2, vote3])
@@ -365,10 +369,7 @@ def main_predict():
                     MESSAGE = bytes("#" + decode_label_dict[final_vote] + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumPower) + "|", 'utf-8')
 
                     #wificomms.tcp(MESSAGE)
-                    time.sleep(REACTION_TIME) # give time for reaction
-                
-                if not input_queue.empty():
-                    return                   
+                    time.sleep(REACTION_TIME) # give time for reaction 
 
 def collect_data():
     with open(sys.argv[1], mode='w', newline='') as file:
@@ -410,10 +411,8 @@ models = init_models()
 #time.sleep(REACTION_TIME)
 
 while(1):
-    if handshake() == True:
-        pass
-    else: 
-        continue
     command = input("enter 'go' to start prediction")
+
     if command == "go":
-        main_predict()
+        if handshake() == True:
+            main_predict()
