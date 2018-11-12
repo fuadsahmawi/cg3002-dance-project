@@ -34,7 +34,10 @@ print(str(count) + " predictions have probability < 0.8")
         
 acc = accuracy_score(TEST_Y, y_pred_final)
 
-rev_label_dict = {0:'neutral', 1:'wipers', 2:'num7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'num6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'bow'}
+#rev_label_dict = {0:'neutral', 1:'wipers', 2:'num7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'num6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'bow'}
+
+## removed neutral
+rev_label_dict = {0:'wipers', 1:'num7', 2:'chicken', 3:'sidestep', 4:'turnclap', 5:'num6', 6:'salute', 7:'mermaid', 8:'swing', 9:'cowboy', 10:'bow'}
 labels = list(rev_label_dict.values())
 
 ## convert int to strings
