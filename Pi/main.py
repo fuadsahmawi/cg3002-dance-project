@@ -15,7 +15,7 @@ import serial
 from sklearn.externals import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-#from keras.models import load_model
+from keras.models import load_model
 
 #import wificomms
 
@@ -35,7 +35,7 @@ power = 0
 cumPower = 0
 
 # debugging variables
-debug = True # flag for printing debugging statements
+debug = False # flag for printing debugging statements
 k = 0
 
 
@@ -164,11 +164,11 @@ def init_models():
     print(rf_model)
     print()
 
-    #rnn_model = load_model('rnn.h5')
-    #print(rnn_model)
+    rnn_model = load_model('rnn.h5')
+    print(rnn_model)
     print()
 
-    return svm_model, mlp_model, rf_model #, rnn_model
+    return svm_model, mlp_model, rf_model,  rnn_model
 
 def model_pred(model, window_data):
     all_probas = model.predict_proba(window_data)
@@ -339,19 +339,19 @@ def main_predict():
                 print("rf: ", decode_label_dict[vote2])
 
                 # RNN
-                #vote3 = models[3].predict(np.expand_dims(list(window_data),axis=0))
-                #predicted_class = np.argmax(y_pred, axis=-1)
-                #proba = vote3[0][predicted_class[0]]
+                vote3 = models[3].predict(np.expand_dims(list(window_data),axis=0))
+                predicted_class = np.argmax(vote3, axis=-1)
+                proba = vote3[0][predicted_class[0]]
                 
-                #if proba > 0.8:
-                #    vote3 = predicted_class[0]
-                #else:
-                #    vote3 = -1
-                #print("rnn: ", decode_label_dict[vote3])
+                if proba > 0.8:
+                    vote3 = predicted_class[0]
+                else:
+                    vote3 = -1
+                print("rnn: ", decode_label_dict[vote3])
                 print()
 
                 count = 0
-                votes = Counter([vote0, vote1, vote2])
+                votes = Counter([vote0, vote1, vote2, vote3])
                 vote_list = votes.most_common()
                 final_vote = vote_list[0][0]
 
