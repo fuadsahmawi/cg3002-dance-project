@@ -147,7 +147,7 @@ mlp_model = None
 rf_model = None
 knn_model = None
 
-decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'number6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'bow'}
+decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'number6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'logout'}
 
 def init_models():
     svm_model = joblib.load("SVM.cls")
@@ -351,7 +351,7 @@ def main_predict():
                     MESSAGE = bytes("#" + decode_label_dict[final_vote] + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumPower) + "|", 'utf-8')
 
                     #wificomms.tcp(MESSAGE)
-                    time.sleep(1.5) # give time for reaction
+                    time.sleep(REACTION_TIME) # give time for reaction
 
 
 def collect_data():

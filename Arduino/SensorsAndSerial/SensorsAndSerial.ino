@@ -106,7 +106,8 @@ void Power() {
    //average_1 = average_1 * 2;
    voltage = voltage * 2;
    power = voltage * current;
-   energy += power * ((micros()-Prevtime)/ 1000000.0); 
+   energy += power * ((micros()-Prevtime)/ 1000000.0);
+   if (debug) Serial.println("power ok"); 
 
 }
 
@@ -140,6 +141,7 @@ void readSensors(byte* data) {
   digitalWrite(7, HIGH);
   
   read_mpu_6050_data();
+  if (debug) Serial.println("sensor 2 ok");
   
   gyro_x -= gyro_x_cal_2;                                                //Subtract the offset calibration value from the raw gyro_x value
   gyro_y -= gyro_y_cal_2;                                                //Subtract the offset calibration value from the raw gyro_y value
@@ -214,6 +216,8 @@ void readSensors(byte* data) {
   digitalWrite(7, HIGH);
   
   read_mpu_6050_data();
+
+  if (debug) Serial.println("sensor 3 ok");
   
   gyro_x -= gyro_x_cal_3;                                                //Subtract the offset calibration value from the raw gyro_x value
   gyro_y -= gyro_y_cal_3;                                                //Subtract the offset calibration value from the raw gyro_y value
