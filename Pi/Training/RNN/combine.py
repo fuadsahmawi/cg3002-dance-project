@@ -32,7 +32,8 @@ if __name__ == "__main__":
             person_data[person_name] = np.append(person_data[person_name], file, axis=0)
             
         print(person_name)
-        print(type(person_data[person_name]))
+
+    print("write to file")
         
     for key, value in person_data.items():
         file_path = os.path.join(combined_dir, key + ".csv")

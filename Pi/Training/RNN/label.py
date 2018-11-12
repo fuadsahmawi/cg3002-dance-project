@@ -2,7 +2,10 @@ import os
 import sys
 from pandas import read_csv
 
-label_dict = {'neutral':0, 'wipers':1, 'num7':2, 'chicken':3, 'sidestep':4, 'turnclap':5, 'num6':6, 'salute':7, 'mermaid':8, 'swing':9, 'cowboy':10,'bow':11}
+#label_dict = {'neutral':0, 'wipers':1, 'num7':2, 'chicken':3, 'sidestep':4, 'turnclap':5, 'num6':6, 'salute':7, 'mermaid':8, 'swing':9, 'cowboy':10,'bow':11}
+
+## removed neutral
+label_dict = {'wipers':0, 'num7':1, 'chicken':2, 'sidestep':3, 'turnclap':4, 'num6':5, 'salute':6, 'mermaid':7, 'swing':8, 'cowboy':9, 'bow':10}
 
 def label_csv(csv_input, labelled_value, csv_output):
     df = read_csv(csv_input, index_col=None)

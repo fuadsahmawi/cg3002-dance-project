@@ -13,7 +13,6 @@ import serial
 from sklearn.externals import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from keras.models import load_model
 
 #import wificomms
 
@@ -147,7 +146,7 @@ mlp_model = None
 rf_model = None
 knn_model = None
 
-decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'number6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'logout'}
+decode_label_dict = {0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'number6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'bow'}
 
 def init_models():
     svm_model = joblib.load("SVM.cls")
@@ -166,11 +165,7 @@ def init_models():
 #    print(knn_model)
 #    print()
 
-    rnn_model = load_model('rnn.h5')
-    print(rnn_model)
-    print()
-
-    return svm_model, mlp_model, rf_model, rnn_model
+    return svm_model, mlp_model, rf_model #, knn_model
 
 def model_pred(model, window_data):
     all_probas = model.predict_proba(window_data)
@@ -236,9 +231,9 @@ def extract_feature(window_data):
     feature.append(peakGyrX2)
     feature.append(peakGyrY2)
     feature.append(peakGyrZ2)
-    
+
     iqrAccX1 = np.percentile(window_data[:,3], 75) - np.percentile(window_data[:,3],25)
-    iqrAccY1 = np.percentile(window_data[:,4], 75) - np.percentile(window_data[:,4],25) 
+    iqrAccY1 = np.percentile(window_data[:,4], 75) - np.percentile(window_data[:,4],25)
     iqrAccZ1 = np.percentile(window_data[:,5], 75) - np.percentile(window_data[:,5],25)
     iqrAccX2 = np.percentile(window_data[:,9], 75) - np.percentile(window_data[:,9],25)
     iqrAccY2 = np.percentile(window_data[:,10], 75) - np.percentile(window_data[:,10],25)
@@ -261,13 +256,14 @@ def extract_feature(window_data):
     feature.append(iqrGyrX2)
     feature.append(iqrGyrY2)
     feature.append(iqrGyrZ2)
-    
+
+    feature = np.array(feature).reshape(-1,1)
+
     scaler = StandardScaler()
     scaler.fit(feature)
     feature = scaler.transform(feature)
-    
-    return np.array(feature).reshape(1,-1)
 
+    return feature
 
 def main_predict():
     global current;
@@ -327,9 +323,8 @@ def main_predict():
                 vote2 = model_pred(models[2], extracted_features)
                 print("model[2]: ", decode_label_dict[vote2])
 
-                # RNN
-                vote3 = models[3].predict(window_data)
-                print("rnn", vote3)
+#                vote3 = model_pred(models[3], extracted_features)
+#                print("knn", decode_label_dict[vote3[0]])
 
                 count = 0
                 votes = Counter([vote0, vote1, vote2]) #.astype(np.int64)
@@ -351,7 +346,7 @@ def main_predict():
                     MESSAGE = bytes("#" + decode_label_dict[final_vote] + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumPower) + "|", 'utf-8')
 
                     #wificomms.tcp(MESSAGE)
-                    time.sleep(REACTION_TIME) # give time for reaction
+                    time.sleep(1.5) # give time for reaction
 
 
 def collect_data():
