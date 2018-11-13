@@ -149,7 +149,7 @@ mlp_model = None
 rf_model = None
 knn_model = None
 
-decode_label_dict = {-1:'no_pred', 0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'number6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'bow'}
+decode_label_dict = {-1:'no_pred', 0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'number6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'logout'}
 
 def init_models():
     svm_model = joblib.load("SVM.cls")
@@ -175,8 +175,9 @@ def model_pred(model, window_data):
     
     predicted_class = np.argmax(all_probas, axis=-1)
     proba = all_probas[0][predicted_class]
+    print(proba)
     
-    if proba > 0.3:
+    if proba > 0.7:
         return predicted_class[0]
     else:
         return -1
@@ -262,9 +263,9 @@ def extract_feature(window_data):
 
     feature = np.array(feature).reshape(1,-1)
 
-    scaler = StandardScaler()
-    scaler.fit(feature)
-    feature = scaler.transform(feature)
+#    scaler = StandardScaler()
+#    scaler.fit(feature)
+#    feature = scaler.transform(feature)
 
     return feature
 
@@ -357,7 +358,7 @@ def main_predict():
 
                 if len(vote_list) >= 3 or final_vote == -1: ## no decision or probabilities too low
                     continue
-                elif vote0 == 0: ## if vote = neutral, don't send to server
+                elif final_vote == 0: ## if vote = neutral, don't send to server
                     print("vote[0]: neutral move detected\n")
                     window_data.clear()
                     continue
