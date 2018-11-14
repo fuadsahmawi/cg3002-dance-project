@@ -10,7 +10,6 @@ from base64 import b64encode, b64decode
 
 SECRET_KEY = bytes("abcdefghijklmnop", 'utf-8')
 BUFFER_SIZE = 1024
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # copied the padding module here because import did not work
 """ Functions to manage padding
@@ -86,16 +85,20 @@ def unpad(padded_data, block_size, style='pkcs7'):
         raise ValueError("Unknown padding style")
     return padded_data[:-padding_len]
 
+s = None
 
 def tcp_init():
+    global s
     TCP_IP = '192.168.43.12'
     TCP_PORT = 2345
     # MESSAGE = b"#mermaid | 4 | 0.1 | 0.4 | 6 |"
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # connect to TCP socket
     s.connect((TCP_IP, TCP_PORT))
 
 def tcp(MESSAGE):
+    global s
     # init cipher
     init_vect = Random.new().read(AES.block_size)
     cipher = AES.new(SECRET_KEY, AES.MODE_CBC, init_vect)
@@ -104,12 +107,12 @@ def tcp(MESSAGE):
     # encrypt with AES_CBC then encode w base64
     padded_message = pad(MESSAGE, AES.block_size)
     encoded_message = b64encode(init_vect + cipher.encrypt(padded_message))
-    print(encoded_message)
 
     s.send(encoded_message)
     #data = s.recv(BUFFER_SIZE)
 
-
+def close():
+    s.close()
 
 
 
