@@ -6,6 +6,8 @@ import pdb
 import threading
 import queue
 
+import wificomms
+
 import collections
 from collections import Counter
 import csv
@@ -16,8 +18,6 @@ from sklearn.externals import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from keras.models import load_model
-
-import wificomms
 
 # constants
 HANDSHAKE_INIT = struct.pack("B", 5) # (5).to_bytes(1, byteorder='big') # 
@@ -145,11 +145,13 @@ def barray_to_intarray(b_array, n_bytes_per_int):
     return int_array
 
 ## global vars for main_predict()
+svm_model = None
 mlp_model = None
 rf_model = None
 knn_model = None
+rnn_model = None
 
-decode_label_dict = {-1:'no_pred', 0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'number6', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'logout'}
+decode_label_dict = {-1:'no_pred', 0:'neutral', 1:'wipers', 2:'number7', 3:'chicken', 4:'sidestep', 5:'turnclap', 6:'numbersix', 7:'salute', 8:'mermaid', 9:'swing', 10:'cowboy', 11:'logout'}
 
 def init_models():
     svm_model = joblib.load("SVM.cls")
@@ -370,7 +372,7 @@ def main_predict():
                     #print(current)
                     MESSAGE = bytes("#" + decode_label_dict[final_vote] + "|" + str(voltage) + "|" + str(current) + "|" + str(power) + "|" + str(cumPower) + "|", 'utf-8')
 
-                    #wificomms.tcp(MESSAGE)
+                    wificomms.tcp(MESSAGE)
                     time.sleep(REACTION_TIME) # give time for reaction 
 
 def collect_data():
@@ -405,16 +407,23 @@ def handshake():
 ser = serial.Serial('/dev/serial0', 57600, timeout=1)
 print("connected to serial\n")
 
-wificomms.tcp_init()
 #time.sleep(WAITING_TIME + REACTION_TIME)
 
 models = init_models()
 
 while(1):
     command = input("enter 'go' to start prediction")
-    
-    if command == "go":
-        print("starting")
-        if handshake() == True:
-            print("passed")
-            main_predict()
+    try:
+        if command == "go":
+            print("connecting to server")
+            wificomms.tcp_init()
+            print("connected to server")
+
+            if handshake() == True:
+                print("passed")
+                main_predict()
+                wificomms.close()
+    except:
+        print("exception")
+        wificomms.close()
+        continue
