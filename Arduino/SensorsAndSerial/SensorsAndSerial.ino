@@ -106,7 +106,8 @@ void Power() {
    //average_1 = average_1 * 2;
    voltage = voltage * 2;
    power = voltage * current;
-   energy += power * ((micros()-Prevtime)/ 1000000.0);
+   //energy += power * ((micros()-Prevtime)/ 1000000.0);
+   energy += power * 0.018;
    if (debug) Serial.println("power ok"); 
 
 }
