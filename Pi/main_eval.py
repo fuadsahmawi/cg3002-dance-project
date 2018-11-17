@@ -67,8 +67,8 @@ def checksum(b_array):
 
 # pre-condition: packet must be PACKET_SIZE, and of pre-defined format
 def deserialize_packet(packet):
-    # returns a list of int, int, int, float, float, float etc then 2 floats
-    # for current and voltage
+    # returns a list of int, int, int, float, float, float
+    # updates these global variables: current, voltage, cumPower, power
 
     # beware that endianness of arduino is little endian
     # data is in byte form, but printed as ascii characters
